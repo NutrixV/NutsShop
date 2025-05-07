@@ -1,0 +1,102 @@
+services:
+  # Backend API
+  - type: web
+    name: nutsshop-api
+    env: docker
+    dockerfilePath: devops/docker/php/Dockerfile.prod
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        fromDatabase:
+          name: nutsshop-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: nutsshop-db
+          property: port
+      - key: DB_DATABASE
+        fromDatabase:
+          name: nutsshop-db
+          property: database
+      - key: DB_USERNAME
+        fromDatabase:
+          name: nutsshop-db
+          property: username
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: nutsshop-db
+          property: password
+      - key: REDIS_HOST
+        fromService:
+          type: redis
+          name: nutsshop-redis
+          property: host
+      - key: REDIS_PORT
+        fromService:
+          type: redis
+          name: nutsshop-redis
+          property: port
+      - key: MEILISEARCH_HOST
+        fromService:
+          type: pserv
+          name: nutsshop-meilisearch
+          property: hostport
+      - key: MEILISEARCH_KEY
+        generateValue: true
+      - key: APP_KEY
+        generateValue: true
+      - key: FRONTEND_URL
+        fromService:
+          type: web
+          name: nutsshop-frontend
+          property: url
+
+  # Frontend
+  - type: web
+    name: nutsshop-frontend
+    env: node
+    buildCommand: cd frontend && npm ci && npm run build
+    startCommand: cd frontend && npm run preview
+    envVars:
+      - key: API_URL
+        fromService:
+          type: web
+          name: nutsshop-api
+          property: url
+          append: /api
+
+  # Meilisearch
+  - type: pserv
+    name: nutsshop-meilisearch
+    env: docker
+    dockerfilePath: ./devops/docker/meilisearch/Dockerfile
+    dockerContext: .
+    disk:
+      name: meilisearch-data
+      mountPath: /meili_data
+      sizeGB: 10
+    envVars:
+      - key: MEILI_MASTER_KEY
+        generateValue: true
+
+# Redis instance
+  - type: redis
+    name: nutsshop-redis
+    ipAllowList: []
+    plan: free
+
+# PostgreSQL database
+databases:
+  - name: nutsshop-db
+    plan: free
+    type: postgres
+    ipAllowList: [] 

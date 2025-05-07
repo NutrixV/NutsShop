@@ -1,0 +1,109 @@
+version: '3'
+
+services:
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: nutsshop-nginx
+    ports:
+      - "${DOCKER_NGINX_PORT:-8090}:80"
+    volumes:
+      - ./backend:/var/www
+      - ./devops/docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - php
+      - frontend
+    networks:
+      - nutsshop-network
+
+  php:
+    build:
+      context: .
+      dockerfile: devops/docker/php/Dockerfile
+      args:
+        user: nutsshop
+        uid: 1000
+    container_name: nutsshop-php
+    volumes:
+      - ./backend:/var/www
+    networks:
+      - nutsshop-network
+    depends_on:
+      - db
+      - redis
+      - meilisearch
+
+  frontend:
+    build:
+      context: .
+      dockerfile: devops/docker/node/Dockerfile
+    container_name: nutsshop-frontend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    networks:
+      - nutsshop-network
+    command: npm run dev
+
+  db:
+    image: postgres:15-alpine
+    container_name: nutsshop-db
+    restart: unless-stopped
+    ports:
+      - "${DOCKER_POSTGRES_PORT:-5433}:5432"
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-nutsshop}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-nutsshop_password}
+      POSTGRES_USER: ${DB_USERNAME:-nutsshop}
+    volumes:
+      - nutsshop-postgres-data:/var/lib/postgresql/data
+    networks:
+      - nutsshop-network
+
+  redis:
+    image: redis:alpine
+    container_name: nutsshop-redis
+    restart: unless-stopped
+    ports:
+      - "${DOCKER_REDIS_PORT:-6379}:6379"
+    networks:
+      - nutsshop-network
+
+  meilisearch:
+    image: getmeili/meilisearch:v1.0
+    container_name: nutsshop-meilisearch
+    restart: unless-stopped
+    ports:
+      - "${DOCKER_MEILISEARCH_PORT:-7700}:7700"
+    environment:
+      - MEILI_MASTER_KEY=${MEILISEARCH_KEY:-masterKey}
+    volumes:
+      - nutsshop-meilisearch-data:/meili_data
+    networks:
+      - nutsshop-network
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: nutsshop-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-admin@nutsshop.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-nutsshop_password}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "${DOCKER_PGADMIN_PORT:-5050}:80"
+    depends_on:
+      - db
+    networks:
+      - nutsshop-network
+
+networks:
+  nutsshop-network:
+    driver: bridge
+
+volumes:
+  nutsshop-postgres-data:
+    driver: local
+  nutsshop-meilisearch-data:
+    driver: local 
