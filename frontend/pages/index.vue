@@ -122,32 +122,6 @@
         </div>
       </div>
     </section>
-
-    <!-- Підписка на розсилку -->
-    <section class="py-12 bg-amber-600">
-      <div class="container mx-auto px-4">
-        <div class="max-w-3xl mx-auto text-center">
-          <h2 class="text-2xl md:text-3xl font-semibold text-white mb-4">Підпишіться на розсилку</h2>
-          <p class="text-white/90 mb-8">Отримуйте інформацію про акції, знижки та нові надходження</p>
-          
-          <form class="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-            <input 
-              type="email" 
-              placeholder="Ваша електронна пошта"
-              class="flex-grow px-4 py-3 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-400"
-              required
-            >
-            <button 
-              type="submit"
-              class="px-6 py-3 bg-gray-900 hover:bg-gray-800 text-white font-medium rounded-md transition-colors duration-300"
-            >
-              Підписатися
-            </button>
-          </form>
-          <p class="text-white/80 text-sm mt-4">Ми не будемо надсилати спам. Ви можете відписатися в будь-який момент.</p>
-        </div>
-      </div>
-    </section>
   </div>
 </template>
 

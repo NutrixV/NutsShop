@@ -28,6 +28,11 @@ Route::get('/', function () {
     return ['status' => 'ok', 'message' => 'NutsShop API is running'];
 });
 
+// Get CSRF token
+Route::get('/csrf-token', function () {
+    return response()->json(['csrf_token' => csrf_token()]);
+});
+
 // Public routes
 Route::get('/categories', [CategoryController::class, 'index']);
 Route::get('/categories/{id}', [CategoryController::class, 'show']);

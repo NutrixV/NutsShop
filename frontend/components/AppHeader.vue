@@ -57,10 +57,21 @@
             </button>
           </div>
         </div>
+        <!-- Авторизація - Мобільне меню -->
         <div class="mt-4 border-t border-gray-200 pt-4 flex justify-center space-x-4">
-          <NuxtLink to="/auth/login" class="text-amber-600 hover:text-amber-800">Вхід</NuxtLink>
-          <span class="text-gray-300">|</span>
-          <NuxtLink to="/auth/register" class="text-amber-600 hover:text-amber-800">Реєстрація</NuxtLink>
+          <!-- Якщо не залогінений -->
+          <template v-if="!isLoggedIn">
+            <NuxtLink to="/auth/login" class="text-amber-600 hover:text-amber-800">Вхід</NuxtLink>
+            <span class="text-gray-300">|</span>
+            <NuxtLink to="/auth/register" class="text-amber-600 hover:text-amber-800">Реєстрація</NuxtLink>
+          </template>
+          
+          <!-- Якщо залогінений -->
+          <template v-else>
+            <NuxtLink to="/account" class="text-amber-600 hover:text-amber-800">Особистий кабінет</NuxtLink>
+            <span class="text-gray-300">|</span>
+            <button @click="logout" class="text-amber-600 hover:text-amber-800">Вийти</button>
+          </template>
         </div>
       </div>
     </div>
@@ -84,11 +95,51 @@
               </svg>
               <span class="text-sm font-medium">0 800 123 456</span>
             </div>
+            
+            <!-- Авторизація - Десктопне меню -->
             <div class="flex items-center space-x-4">
-              <NuxtLink to="/auth/login" class="text-gray-700 hover:text-amber-600">Вхід</NuxtLink>
-              <span class="text-gray-300">|</span>
-              <NuxtLink to="/auth/register" class="text-gray-700 hover:text-amber-600">Реєстрація</NuxtLink>
+              <!-- Якщо не залогінений -->
+              <template v-if="!isLoggedIn">
+                <NuxtLink to="/auth/login" class="text-gray-700 hover:text-amber-600">Вхід</NuxtLink>
+                <span class="text-gray-300">|</span>
+                <NuxtLink to="/auth/register" class="text-gray-700 hover:text-amber-600">Реєстрація</NuxtLink>
+              </template>
+              
+              <!-- Якщо залогінений -->
+              <template v-else>
+                <div class="relative user-dropdown-container">
+                  <button 
+                    class="text-gray-700 hover:text-amber-600 flex items-center"
+                    @mouseenter="showDropdown = true"
+                  >
+                    <span>{{ customerName }}</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  <div 
+                    class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 user-dropdown-menu"
+                    :class="{ 'hidden': !showDropdown }"
+                    @mouseenter="showDropdown = true"
+                    @mouseleave="showDropdown = false"
+                  >
+                    <!-- Невидимий елемент для збільшення області наведення -->
+                    <div class="absolute top-[-10px] left-0 right-0 h-[10px]"></div>
+                    
+                    <NuxtLink to="/account" class="block px-4 py-2 text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-600">
+                      Особистий кабінет
+                    </NuxtLink>
+                    <NuxtLink to="/account/orders" class="block px-4 py-2 text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-600">
+                      Мої замовлення
+                    </NuxtLink>
+                    <button @click="logout" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-600">
+                      Вийти
+                    </button>
+                  </div>
+                </div>
+              </template>
             </div>
+            
             <NuxtLink to="/cart" class="relative p-2">
               <span class="sr-only">Кошик</span>
               <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -151,13 +202,86 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+
+interface Customer {
+  first_name: string;
+  last_name: string;
+  email?: string;
+}
 
 const router = useRouter();
 const mobileMenuOpen = ref(false);
 const searchQuery = ref('');
 const cartItemsCount = ref(0); // Тут має бути логіка отримання кількості товарів
+const isLoggedIn = ref(false);
+const customer = ref<Customer | null>(null);
+const showDropdown = ref(false);
+
+// Обчислюване ім'я користувача
+const customerName = computed(() => {
+  if (!customer.value) return '';
+  return `${customer.value.first_name || ''} ${customer.value.last_name || ''}`.trim();
+});
+
+// Функція перевірки статусу автентифікації
+const checkAuthStatus = () => {
+  const loggedIn = localStorage.getItem('isLoggedIn') === 'true';
+  isLoggedIn.value = loggedIn;
+  
+  if (loggedIn) {
+    try {
+      const customerData = localStorage.getItem('customer');
+      if (customerData) {
+        customer.value = JSON.parse(customerData) as Customer;
+      }
+    } catch (error) {
+      console.error('Error parsing customer data:', error);
+    }
+  }
+};
+
+// Закриття випадаючого меню при кліку за його межами
+const handleClickOutside = (event: MouseEvent) => {
+  const target = event.target as HTMLElement;
+  const isOutsideClick = !target.closest('.user-dropdown-container');
+  
+  if (isOutsideClick && showDropdown.value) {
+    showDropdown.value = false;
+  }
+};
+
+// Перевірка статусу автентифікації при завантаженні компонента
+onMounted(() => {
+  // Початкова перевірка
+  checkAuthStatus();
+  
+  // Додаємо слухач події зміни маршруту
+  router.afterEach(() => {
+    checkAuthStatus();
+    showDropdown.value = false;
+  });
+  
+  // Встановлюємо інтервал перевірки стану авторизації кожну секунду
+  const authCheckInterval = window.setInterval(checkAuthStatus, 1000);
+  
+  // Додаємо слухач для закриття випадаючого меню при кліку за його межами
+  document.addEventListener('click', handleClickOutside);
+  
+  // Створюємо кастомну подію для перевірки авторизації
+  window.addEventListener('checkAuth', checkAuthStatus);
+});
+
+// Вихід з системи
+const logout = () => {
+  localStorage.removeItem('isLoggedIn');
+  localStorage.removeItem('customer');
+  isLoggedIn.value = false;
+  customer.value = null;
+  showDropdown.value = false;
+  router.push('/');
+};
 
 // Функція пошуку
 const search = () => {
