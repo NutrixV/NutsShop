@@ -39,6 +39,7 @@ Route::get('/categories/{id}', [CategoryController::class, 'show']);
 
 Route::get('/products', [ProductController::class, 'index']);
 Route::get('/products/{id}', [ProductController::class, 'show']);
+Route::get('/product-filters', [ProductController::class, 'getFilters']);
 
 // Customer authentication
 Route::post('/customers/register', [CustomerController::class, 'register']);

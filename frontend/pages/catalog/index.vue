@@ -33,6 +33,29 @@
           'bg-white p-4 rounded-lg shadow-sm w-full lg:w-64 shrink-0 space-y-6 border',
           { 'hidden lg:block': !showFilters }
         ]">
+          <!-- Кнопки управління фільтрами -->
+          <div class="mb-4 flex flex-col space-y-2">
+            <button 
+              @click="applyFilters" 
+              class="w-full py-2 bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium rounded-md transition-colors duration-300 flex items-center justify-center"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+              </svg>
+              Застосувати фільтри
+            </button>
+            <button 
+              v-if="hasActiveFilters"
+              @click="resetFilters" 
+              class="w-full py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 text-sm font-medium rounded-md transition-colors duration-300 flex items-center justify-center"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              Скинути фільтри
+            </button>
+          </div>
+
           <!-- Категорії -->
           <div class="border-b pb-4">
             <button 
@@ -80,7 +103,7 @@
               @click="toggleFilter('price')" 
               class="w-full flex justify-between items-center font-semibold text-lg mb-3 text-gray-900"
             >
-              <span>Ціна</span>
+              <span>Ціна, грн</span>
               <svg 
                 xmlns="http://www.w3.org/2000/svg" 
                 class="h-5 w-5 transition-transform" 
@@ -92,269 +115,37 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
               </svg>
             </button>
-            <div v-if="expandedFilters.price" class="space-y-4 mt-2">
-              <div class="flex space-x-2">
-                <div class="w-1/2">
+            <div v-if="expandedFilters.price" class="mt-2">
+              <div class="flex space-x-2 mb-4">
+                <div class="flex-1">
                   <input 
                     type="number" 
-                    placeholder="Від" 
                     v-model="priceFrom" 
+                    min="0" 
+                    :placeholder="priceMinPlaceholder" 
                     class="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
                   />
                 </div>
-                <div class="w-1/2">
+                <div class="flex-1">
                   <input 
                     type="number" 
-                    placeholder="До" 
                     v-model="priceTo" 
+                    min="0" 
+                    :placeholder="priceMaxPlaceholder" 
                     class="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
                   />
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Загальні характеристики -->
-          <div class="border-b pb-4">
-            <button 
-              @click="toggleFilter('general')" 
-              class="w-full flex justify-between items-center font-semibold text-lg mb-3 text-gray-900"
-            >
-              <span>Загальні характеристики</span>
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                class="h-5 w-5 transition-transform" 
-                :class="{ 'transform rotate-180': expandedFilters.general }"
-                fill="none" 
-                viewBox="0 0 24 24" 
-                stroke="currentColor"
-              >
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-            <div v-if="expandedFilters.general" class="space-y-4 mt-2">
-              <!-- Атрибути з групи "general" -->
-              <div 
-                v-for="attribute in productAttributes.filter((attr: ProductAttribute) => attr.group === 'general')" 
-                :key="`general-${attribute.code}`"
-                class="mb-4"
-              >
-                <h3 class="font-medium text-gray-700 mb-2">{{ attribute.name }}</h3>
-                
-                <!-- Для атрибутів типу "range" -->
-                <div v-if="attribute.type === 'range'" class="space-y-3">
-                  <div class="flex space-x-2">
-                    <div class="w-1/2">
-                      <input 
-                        type="number" 
-                        :placeholder="`Від ${attribute.min}`" 
-                        v-model="rangeAttributes[attribute.code][0]" 
-                        class="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
-                      />
-                    </div>
-                    <div class="w-1/2">
-                      <input 
-                        type="number" 
-                        :placeholder="`До ${attribute.max}`" 
-                        v-model="rangeAttributes[attribute.code][1]" 
-                        class="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
-                      />
-                    </div>
-                  </div>
-                  <div class="text-xs text-gray-500">
-                    {{ attribute.unit ? `Діапазон: ${attribute.min} - ${attribute.max} ${attribute.unit}` : `Діапазон: ${attribute.min} - ${attribute.max}` }}
-                  </div>
-                </div>
-                
-                <!-- Для атрибутів типу "checkbox" -->
-                <div v-else-if="attribute.type === 'checkbox'" class="space-y-2">
-                  <div 
-                    v-for="option in attribute.options" 
-                    :key="`option-${attribute.code}-${option.id}`" 
-                    class="flex items-center"
-                  >
-                    <input 
-                      type="checkbox" 
-                      :id="`option-${attribute.code}-${option.id}`" 
-                      v-model="selectedAttributes[attribute.code]" 
-                      :value="option.id"
-                      class="w-4 h-4 text-amber-600 focus:ring-amber-500 rounded"
-                    />
-                    <label :for="`option-${attribute.code}-${option.id}`" class="ml-2 text-gray-700">
-                      {{ option.value }}
-                      <span v-if="option.count" class="text-gray-500 text-xs">({{ option.count }})</span>
-                    </label>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Харчова цінність -->
-          <div class="border-b pb-4">
-            <button 
-              @click="toggleFilter('nutrition')" 
-              class="w-full flex justify-between items-center font-semibold text-lg mb-3 text-gray-900"
-            >
-              <span>Харчова цінність</span>
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                class="h-5 w-5 transition-transform" 
-                :class="{ 'transform rotate-180': expandedFilters.nutrition }"
-                fill="none" 
-                viewBox="0 0 24 24" 
-                stroke="currentColor"
-              >
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-            <div v-if="expandedFilters.nutrition" class="space-y-4 mt-2">
-              <!-- Атрибути з групи "nutrition" -->
-              <div 
-                v-for="attribute in productAttributes.filter((attr: ProductAttribute) => attr.group === 'nutrition')" 
-                :key="`nutrition-${attribute.code}`"
-                class="mb-4"
-              >
-                <h3 class="font-medium text-gray-700 mb-2">
-                  {{ attribute.name }}
-                  <span v-if="attribute.unit" class="text-xs text-gray-500">({{ attribute.unit }})</span>
-                </h3>
-                
-                <!-- Для атрибутів типу "range" -->
-                <div v-if="attribute.type === 'range'" class="space-y-3">
-                  <div class="flex space-x-2">
-                    <div class="w-1/2">
-                      <input 
-                        type="number" 
-                        :placeholder="`Від ${attribute.min}`" 
-                        v-model="rangeAttributes[attribute.code][0]" 
-                        class="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
-                      />
-                    </div>
-                    <div class="w-1/2">
-                      <input 
-                        type="number" 
-                        :placeholder="`До ${attribute.max}`" 
-                        v-model="rangeAttributes[attribute.code][1]" 
-                        class="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
-                      />
-                    </div>
-                  </div>
-                  <div class="text-xs text-gray-500">
-                    {{ attribute.unit ? `Діапазон: ${attribute.min} - ${attribute.max} ${attribute.unit}` : `Діапазон: ${attribute.min} - ${attribute.max}` }}
-                  </div>
-                </div>
-                
-                <!-- Для атрибутів типу "checkbox" -->
-                <div v-else-if="attribute.type === 'checkbox'" class="space-y-2">
-                  <div 
-                    v-for="option in attribute.options" 
-                    :key="`option-${attribute.code}-${option.id}`" 
-                    class="flex items-center"
-                  >
-                    <input 
-                      type="checkbox" 
-                      :id="`option-${attribute.code}-${option.id}`" 
-                      v-model="selectedAttributes[attribute.code]" 
-                      :value="option.id"
-                      class="w-4 h-4 text-amber-600 focus:ring-amber-500 rounded"
-                    />
-                    <label :for="`option-${attribute.code}-${option.id}`" class="ml-2 text-gray-700">
-                      {{ option.value }}
-                      <span v-if="option.count" class="text-gray-500 text-xs">({{ option.count }})</span>
-                    </label>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Умови зберігання -->
-          <div class="border-b pb-4">
-            <button 
-              @click="toggleFilter('storage')" 
-              class="w-full flex justify-between items-center font-semibold text-lg mb-3 text-gray-900"
-            >
-              <span>Умови зберігання</span>
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                class="h-5 w-5 transition-transform" 
-                :class="{ 'transform rotate-180': expandedFilters.storage }"
-                fill="none" 
-                viewBox="0 0 24 24" 
-                stroke="currentColor"
-              >
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-            <div v-if="expandedFilters.storage" class="space-y-4 mt-2">
-              <!-- Атрибути з групи "storage" -->
-              <div 
-                v-for="attribute in productAttributes.filter((attr: ProductAttribute) => attr.group === 'storage')" 
-                :key="`storage-${attribute.code}`"
-                class="mb-4"
-              >
-                <h3 class="font-medium text-gray-700 mb-2">
-                  {{ attribute.name }}
-                  <span v-if="attribute.unit" class="text-xs text-gray-500">({{ attribute.unit }})</span>
-                </h3>
-                
-                <!-- Для атрибутів типу "range" -->
-                <div v-if="attribute.type === 'range'" class="space-y-3">
-                  <div class="flex space-x-2">
-                    <div class="w-1/2">
-                      <input 
-                        type="number" 
-                        :placeholder="`Від ${attribute.min}`" 
-                        v-model="rangeAttributes[attribute.code][0]" 
-                        class="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
-                      />
-                    </div>
-                    <div class="w-1/2">
-                      <input 
-                        type="number" 
-                        :placeholder="`До ${attribute.max}`" 
-                        v-model="rangeAttributes[attribute.code][1]" 
-                        class="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
-                      />
-                    </div>
-                  </div>
-                  <div class="text-xs text-gray-500">
-                    {{ attribute.unit ? `Діапазон: ${attribute.min} - ${attribute.max} ${attribute.unit}` : `Діапазон: ${attribute.min} - ${attribute.max}` }}
-                  </div>
-                </div>
-                
-                <!-- Для атрибутів типу "checkbox" -->
-                <div v-else-if="attribute.type === 'checkbox'" class="space-y-2">
-                  <div 
-                    v-for="option in attribute.options" 
-                    :key="`option-${attribute.code}-${option.id}`" 
-                    class="flex items-center"
-                  >
-                    <input 
-                      type="checkbox" 
-                      :id="`option-${attribute.code}-${option.id}`" 
-                      v-model="selectedAttributes[attribute.code]" 
-                      :value="option.id"
-                      class="w-4 h-4 text-amber-600 focus:ring-amber-500 rounded"
-                    />
-                    <label :for="`option-${attribute.code}-${option.id}`" class="ml-2 text-gray-700">
-                      {{ option.value }}
-                      <span v-if="option.count" class="text-gray-500 text-xs">({{ option.count }})</span>
-                    </label>
-                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Акційні товари -->
-          <div class="border-b pb-4">
+          <!-- Знижки -->
+          <div v-if="hasDiscountFilter" class="border-b pb-4">
             <button 
               @click="toggleFilter('discount')" 
               class="w-full flex justify-between items-center font-semibold text-lg mb-3 text-gray-900"
             >
-              <span>Знижки та акції</span>
+              <span>Знижки</span>
               <svg 
                 xmlns="http://www.w3.org/2000/svg" 
                 class="h-5 w-5 transition-transform" 
@@ -366,37 +157,98 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
               </svg>
             </button>
-            <div v-if="expandedFilters.discount" class="mt-2">
+            <div v-if="expandedFilters.discount" class="space-y-2 mt-2">
               <div class="flex items-center">
                 <input 
                   type="checkbox" 
-                  id="discount-only" 
+                  id="discount-filter" 
                   v-model="discountOnly" 
                   class="w-4 h-4 text-amber-600 focus:ring-amber-500 rounded"
                 />
-                <label for="discount-only" class="ml-2 text-gray-700">
-                  Тільки зі знижкою
+                <label for="discount-filter" class="ml-2 text-gray-700">
+                  Зі знижкою
                 </label>
               </div>
             </div>
           </div>
-          
-          <!-- Кнопки фільтрації -->
-          <div class="pt-4">
-            <button 
-              @click="applyFilters" 
-              class="w-full bg-amber-600 hover:bg-amber-700 text-white py-2 px-4 rounded-md transition-colors duration-300 mb-2"
-            >
-              Застосувати фільтри
-            </button>
-            
-            <button 
-              @click="resetFilters" 
-              class="w-full py-2 px-4 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-300"
-            >
-              Скинути всі фільтри
-            </button>
-          </div>
+
+          <!-- Динамічні групи фільтрів на основі атрибутів -->
+          <template v-for="(group, groupName) in groupedAttributes" :key="groupName">
+            <div class="border-b pb-4" v-if="group.length > 0">
+              <button 
+                @click="toggleFilter(groupName)" 
+                class="w-full flex justify-between items-center font-semibold text-lg mb-3 text-gray-900"
+              >
+                <span>{{ getGroupDisplayName(groupName) }}</span>
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  class="h-5 w-5 transition-transform" 
+                  :class="{ 'transform rotate-180': expandedFilters[groupName] }"
+                  fill="none" 
+                  viewBox="0 0 24 24" 
+                  stroke="currentColor"
+                >
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              <div v-if="expandedFilters[groupName]" class="space-y-4 mt-2">
+                <!-- Відображення кожного атрибута в групі -->
+                <div v-for="attribute in group" :key="attribute.code" class="mt-4">
+                  <div v-if="attribute.type === 'checkbox' && attribute.options && attribute.options.length > 0">
+                    <h4 class="text-sm font-medium text-gray-700 mb-2">{{ attribute.name }}</h4>
+                    <div class="space-y-2">
+                      <div 
+                        v-for="option in attribute.options" 
+                        :key="`${attribute.code}-${option.id}`" 
+                        class="flex items-center"
+                      >
+                        <input 
+                          type="checkbox" 
+                          :id="`${attribute.code}-${option.id}`" 
+                          v-model="selectedAttributes[attribute.code]" 
+                          :value="option.id"
+                          class="w-4 h-4 text-amber-600 focus:ring-amber-500 rounded"
+                        />
+                        <label :for="`${attribute.code}-${option.id}`" class="ml-2 text-gray-700 text-sm flex justify-between w-full">
+                          <span>{{ option.value }}</span>
+                          <span class="text-gray-500">{{ option.count }}</span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div v-else-if="attribute.type === 'range'" class="mt-4">
+                    <h4 class="text-sm font-medium text-gray-700 mb-2">
+                      {{ attribute.name }}
+                      <span v-if="attribute.unit" class="text-xs text-gray-500">({{ attribute.unit }})</span>
+                    </h4>
+                    <div class="flex space-x-2 mb-2">
+                      <div class="flex-1">
+                        <input 
+                          type="number" 
+                          v-model="rangeAttributes[attribute.code][0]" 
+                          :min="attribute.min" 
+                          :max="attribute.max" 
+                          placeholder="Від" 
+                          class="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        />
+                      </div>
+                      <div class="flex-1">
+                        <input 
+                          type="number" 
+                          v-model="rangeAttributes[attribute.code][1]" 
+                          :min="attribute.min" 
+                          :max="attribute.max" 
+                          placeholder="До" 
+                          class="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </template>
         </aside>
 
         <!-- Список товарів -->
@@ -420,11 +272,12 @@
                   </svg>
                 </button>
               </div>
+              <!-- Ціновий фільтр -->
               <div 
-                v-if="priceFrom || priceTo" 
+                v-if="isPriceFilterApplied && (priceFrom !== null || priceTo !== null)" 
                 class="bg-gray-100 px-3 py-1 rounded-full text-sm text-gray-800 flex items-center"
               >
-                Ціна: {{ priceFrom || '0' }} - {{ priceTo || '∞' }} грн
+                Ціна: {{ priceFrom || 0 }} - {{ priceTo || '∞' }} грн
                 <button @click="clearPriceFilter" class="ml-1 text-gray-500 hover:text-gray-700">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -585,11 +438,11 @@ interface ApiCategory {
 
 interface ApiPagination {
   current_page: number;
-  from: number;
   last_page: number;
-  per_page: number;
-  to: number;
   total: number;
+  per_page: number;
+  from?: number;
+  to?: number;
 }
 
 interface ApiResponse {
@@ -640,6 +493,7 @@ const categories = ref<ApiCategory[]>([]);
 const selectedCategories = ref<number[]>([]);
 const priceFrom = ref<number | null>(null);
 const priceTo = ref<number | null>(null);
+const isPriceFilterApplied = ref(false); // Відстежує, чи було встановлено значення ціни користувачем
 const discountOnly = ref(false);
 const sortOption = ref('name');
 const loading = ref(false);
@@ -657,17 +511,33 @@ const selectedAttributes = ref<Record<string, (number | string)[]>>({});
 const rangeAttributes = ref<Record<string, [number | null, number | null]>>({});
 const productAttributes = ref<ProductAttribute[]>([]);
 
-// Рахуємо, чи є активні фільтри
+// Оголошуємо змінні для плейсхолдерів цінового фільтра
+const priceMinPlaceholder = ref('Від');
+const priceMaxPlaceholder = ref('До');
+
+// Чи є активні фільтри
 const hasActiveFilters = computed(() => {
-  const hasAttributeFilters = Object.values(selectedAttributes.value).some(values => values.length > 0);
-  const hasRangeFilters = Object.values(rangeAttributes.value).some(([min, max]) => min !== null || max !== null);
+  // Перевіряємо, чи є обрані категорії
+  if (selectedCategories.value.length > 0) return true;
   
-  return selectedCategories.value.length > 0 || 
-         priceFrom.value !== null || 
-         priceTo.value !== null || 
-         discountOnly.value || 
-         hasAttributeFilters || 
-         hasRangeFilters;
+  // Перевіряємо, чи встановлений ціновий діапазон і чи був він явно застосований
+  const hasPriceFilter = isPriceFilterApplied.value && (priceFrom.value !== null || priceTo.value !== null);
+  if (hasPriceFilter) return true;
+  
+  // Перевіряємо, чи вибрана опція "тільки зі знижкою"
+  if (discountOnly.value) return true;
+  
+  // Перевіряємо, чи вибрані будь-які атрибути фільтрації
+  for (const key in selectedAttributes.value) {
+    if (selectedAttributes.value[key].length > 0) return true;
+  }
+  
+  // Перевіряємо, чи встановлені будь-які значення діапазону
+  for (const key in rangeAttributes.value) {
+    if (rangeAttributes.value[key][0] !== null || rangeAttributes.value[key][1] !== null) return true;
+  }
+  
+  return false;
 });
 
 // Отримуємо назви вибраних категорій
@@ -700,6 +570,12 @@ const mapProductForComponent = (product: ApiProduct): ProductForComponent => {
 // Методи
 const applyFilters = () => {
   currentPage.value = 1; // Скидаємо пагінацію при зміні фільтрів
+  
+  // Перевіряємо, чи був встановлений ціновий фільтр
+  if (priceFrom.value !== null || priceTo.value !== null) {
+    isPriceFilterApplied.value = true;
+  }
+  
   updateQueryParams();
   showFilters.value = false; // Закриваємо на мобільних після застосування
   fetchProducts();
@@ -709,19 +585,19 @@ const resetFilters = () => {
   selectedCategories.value = [];
   priceFrom.value = null;
   priceTo.value = null;
+  isPriceFilterApplied.value = false; // Скидаємо прапорець застосування цінового фільтра
   discountOnly.value = false;
   
-  // Скидаємо атрибути
-  Object.keys(selectedAttributes.value).forEach(key => {
+  // Очищаємо всі атрибути
+  for (const key in selectedAttributes.value) {
     selectedAttributes.value[key] = [];
-  });
+  }
   
-  // Скидаємо діапазони
-  Object.keys(rangeAttributes.value).forEach(key => {
+  // Очищаємо всі діапазони
+  for (const key in rangeAttributes.value) {
     rangeAttributes.value[key] = [null, null];
-  });
+  }
   
-  sortOption.value = 'name';
   currentPage.value = 1;
   updateQueryParams();
   fetchProducts();
@@ -737,6 +613,7 @@ const removeCategory = (index: number) => {
 const clearPriceFilter = () => {
   priceFrom.value = null;
   priceTo.value = null;
+  isPriceFilterApplied.value = false; // Скидаємо прапорець застосування цінового фільтра
   updateQueryParams();
   fetchProducts();
 };
@@ -757,99 +634,124 @@ const goToPage = (page: number) => {
 };
 
 const updateQueryParams = () => {
-  const query: Record<string, any> = {};
+  const params: Record<string, string | string[]> = {};
   
+  // Категорії
   if (selectedCategories.value.length > 0) {
-    query.categories = selectedCategories.value.join(',');
+    if (selectedCategories.value.length === 1) {
+      params.category_id = selectedCategories.value[0].toString();
+    } else {
+      params.category_id = selectedCategories.value.map(c => c.toString()) as string[];
+    }
   }
   
-  if (priceFrom.value !== null) {
-    query.price_from = priceFrom.value;
+  // Ціновий діапазон (тільки якщо фільтр був явно застосований)
+  if (isPriceFilterApplied.value) {
+    if (priceFrom.value !== null) {
+      params.price_from = priceFrom.value.toString();
+    }
+    
+    if (priceTo.value !== null) {
+      params.price_to = priceTo.value.toString();
+    }
   }
   
-  if (priceTo.value !== null) {
-    query.price_to = priceTo.value;
-  }
-  
+  // Опція "тільки зі знижкою"
   if (discountOnly.value) {
-    query.discount = 1;
+    params.discount = '1';
   }
   
+  // Сортування (якщо відрізняється від значення за замовчуванням)
   if (sortOption.value !== 'name') {
-    query.sort = sortOption.value;
+    params.sort = sortOption.value;
   }
   
+  // Поточна сторінка (тільки якщо не перша)
   if (currentPage.value > 1) {
-    query.page = currentPage.value;
+    params.page = currentPage.value.toString();
   }
   
-  // Додаємо вибрані атрибути в URL
-  Object.entries(selectedAttributes.value).forEach(([code, values]) => {
+  // Атрибути
+  for (const [key, values] of Object.entries(selectedAttributes.value)) {
     if (values.length > 0) {
-      query[`attr_${code}`] = values.join(',');
+      // Перетворюємо кожне значення на рядок для сумісності з типом параметрів URL
+      params[`attr_${key}`] = values.map(val => val.toString());
     }
-  });
+  }
   
-  // Додаємо діапазони в URL
-  Object.entries(rangeAttributes.value).forEach(([code, [min, max]]) => {
+  // Діапазони атрибутів
+  for (const [key, [min, max]] of Object.entries(rangeAttributes.value)) {
     if (min !== null) {
-      query[`${code}_from`] = min;
+      params[`${key}_from`] = min.toString();
     }
+    
     if (max !== null) {
-      query[`${code}_to`] = max;
+      params[`${key}_to`] = max.toString();
     }
-  });
+  }
   
-  router.replace({ query });
+  // Оновлюємо URL без перезавантаження сторінки
+  router.push({ query: params }, { replace: true });
 };
 
 const loadFiltersFromQuery = () => {
-  const { query } = route;
-  
-  if (query.categories) {
-    selectedCategories.value = (query.categories as string).split(',').map(Number);
+  // Завантажуємо категорії
+  if (route.query.category_id) {
+    const categoryIds = Array.isArray(route.query.category_id) 
+      ? route.query.category_id.map((id: string) => parseInt(id)) 
+      : [parseInt(route.query.category_id as string)];
+    
+    selectedCategories.value = categoryIds;
   }
   
-  if (query.price_from) {
-    priceFrom.value = Number(query.price_from);
+  // Завантажуємо ціновий діапазон
+  if (route.query.price_from) {
+    priceFrom.value = parseInt(route.query.price_from as string);
+    isPriceFilterApplied.value = true; // Якщо є price_from в URL, це явно застосований фільтр
   }
   
-  if (query.price_to) {
-    priceTo.value = Number(query.price_to);
+  if (route.query.price_to) {
+    priceTo.value = parseInt(route.query.price_to as string);
+    isPriceFilterApplied.value = true; // Якщо є price_to в URL, це явно застосований фільтр
   }
   
-  if (query.discount) {
-    discountOnly.value = Boolean(Number(query.discount));
+  // Завантажуємо параметр "тільки зі знижкою"
+  if (route.query.discount) {
+    discountOnly.value = route.query.discount === '1';
   }
   
-  if (query.sort) {
-    sortOption.value = query.sort as string;
+  // Завантажуємо сортування
+  if (route.query.sort) {
+    sortOption.value = route.query.sort as string;
   }
   
-  if (query.page) {
-    currentPage.value = Number(query.page);
+  // Завантажуємо поточну сторінку
+  if (route.query.page) {
+    currentPage.value = parseInt(route.query.page as string);
   }
   
-  // Завантажуємо атрибути з URL
-  Object.entries(query).forEach(([key, value]) => {
+  // Завантажуємо атрибути
+  Object.keys(route.query).forEach(key => {
+    // Обробка атрибутів (checkbox)
     if (key.startsWith('attr_')) {
       const attrCode = key.replace('attr_', '');
-      selectedAttributes.value[attrCode] = (value as string).split(',');
+      const values = Array.isArray(route.query[key]) 
+        ? route.query[key] as string[]
+        : [route.query[key] as string];
+      
+      selectedAttributes.value[attrCode] = values;
     }
-    // Завантажуємо діапазони з URL
-    else if (key.endsWith('_from')) {
-      const attrCode = key.replace('_from', '');
+    // Обробка діапазонів (окрім ціни)
+    else if ((key.endsWith('_from') || key.endsWith('_to')) && !key.startsWith('price_')) {
+      const attrCode = key.replace('_from', '').replace('_to', '');
+      
       if (!rangeAttributes.value[attrCode]) {
         rangeAttributes.value[attrCode] = [null, null];
       }
-      rangeAttributes.value[attrCode][0] = Number(value);
-    }
-    else if (key.endsWith('_to')) {
-      const attrCode = key.replace('_to', '');
-      if (!rangeAttributes.value[attrCode]) {
-        rangeAttributes.value[attrCode] = [null, null];
-      }
-      rangeAttributes.value[attrCode][1] = Number(value);
+      
+      const index = key.endsWith('_from') ? 0 : 1;
+      const value = route.query[key] as string;
+      rangeAttributes.value[attrCode][index] = value ? parseInt(value) : null;
     }
   });
 };
@@ -934,35 +836,102 @@ const fetchProducts = async () => {
     const response = await fetch(url);
     if (!response.ok) throw new Error('Не вдалося завантажити продукти');
     
-    const data: ApiResponse = await response.json();
+    const data = await response.json();
+    
+    // Оновлюємо стан компонента
     products.value = data.data || [];
     
-    // Перевіряємо наявність meta даних перед доступом до них
-    if (data.meta) {
-      // Зберігаємо інформацію про пагінацію
-      pagination.value = {
-        current_page: data.meta.current_page,
-        from: data.meta.from,
-        last_page: data.meta.last_page,
-        per_page: data.meta.per_page,
-        to: data.meta.to,
-        total: data.meta.total
-      };
-    } else {
-      // Якщо meta даних немає, встановлюємо pagination в null
-      pagination.value = null;
-      console.warn('API не повернув meta дані для пагінації');
-    }
+    // Laravel повертає інший формат пагінації ніж той, на який розраховує фронтенд
+    pagination.value = {
+      current_page: data.current_page || 1,
+      last_page: data.last_page || 1,
+      total: data.total || products.value.length,
+      per_page: data.per_page || 20
+    };
     
-    // Оновлюємо доступні атрибути на основі завантажених продуктів
-    extractProductAttributes();
+    // Також завантажуємо динамічні фільтри на основі поточного вибору
+    fetchFilters();
+    
   } catch (error) {
     console.error('Помилка при завантаженні продуктів:', error);
-    // Встановлюємо порожній масив продуктів при помилці
     products.value = [];
-    pagination.value = null;
   } finally {
     loading.value = false;
+  }
+};
+
+// Отримати фільтри з API
+const fetchFilters = async () => {
+  try {
+    // Формуємо URL з тими ж параметрами, що й для продуктів
+    let url = `${apiBaseUrl}/product-filters`;
+    
+    // Додаємо всі активні фільтри до запиту, щоб отримати актуальний стан фільтрів
+    const params = new URLSearchParams();
+    
+    // Додаємо категорії
+    if (selectedCategories.value.length > 0) {
+      params.append('category_id', selectedCategories.value[0].toString());
+    }
+    
+    // Додаємо ціновий діапазон
+    if (priceFrom.value !== null) {
+      params.append('price_from', priceFrom.value.toString());
+    }
+    
+    if (priceTo.value !== null) {
+      params.append('price_to', priceTo.value.toString());
+    }
+    
+    // Додаємо фільтр по знижках
+    if (discountOnly.value) {
+      params.append('discount', '1');
+    }
+    
+    // Додаємо атрибути
+    Object.entries(selectedAttributes.value).forEach(([code, values]) => {
+      if (values.length > 0) {
+        params.append(`attr_${code}`, values.join(','));
+      }
+    });
+    
+    // Додаємо діапазони атрибутів
+    Object.entries(rangeAttributes.value).forEach(([code, [min, max]]) => {
+      if (min !== null) {
+        params.append(`${code}_from`, min.toString());
+      }
+      if (max !== null) {
+        params.append(`${code}_to`, max.toString());
+      }
+    });
+    
+    // Додаємо пошуковий запит, якщо є
+    if (route.query.search) {
+      params.append('search', route.query.search as string);
+    }
+    
+    // Формуємо URL з параметрами
+    const queryString = params.toString();
+    if (queryString) {
+      url += `?${queryString}`;
+    }
+    
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('Не вдалося завантажити фільтри');
+    
+    const data = await response.json();
+    
+    // Оновлюємо доступні фільтри
+    productAttributes.value = data;
+    
+    // Оновлюємо тільки плейсхолдери для цінового діапазону, не заповнюючи поля
+    const priceFilter = data.find((filter: ProductAttribute) => filter.code === 'price');
+    if (priceFilter) {
+      priceMinPlaceholder.value = `Від ${priceFilter.min}`;
+      priceMaxPlaceholder.value = `До ${priceFilter.max}`;
+    }
+  } catch (error) {
+    console.error('Помилка при завантаженні фільтрів:', error);
   }
 };
 
@@ -1190,5 +1159,60 @@ const clearRangeFilter = (code: string) => {
     updateQueryParams();
     fetchProducts();
   }
+};
+
+// Групування атрибутів за групами
+const groupedAttributes = computed(() => {
+  const groups: Record<string, ProductAttribute[]> = {};
+  
+  productAttributes.value.forEach(attribute => {
+    // Пропускаємо ціну і знижки, вони обробляються окремо
+    if (attribute.code === 'price' || attribute.code === 'discount') {
+      return;
+    }
+    
+    // Використовуємо групу атрибута або 'other' якщо група не вказана
+    const groupName = attribute.group || 'other';
+    
+    if (!groups[groupName]) {
+      groups[groupName] = [];
+    }
+    
+    groups[groupName].push(attribute);
+    
+    // Ініціалізуємо стан фільтра для групи, якщо його ще немає
+    if (expandedFilters.value[groupName] === undefined) {
+      expandedFilters.value[groupName] = false;
+    }
+    
+    // Ініціалізуємо масив вибраних атрибутів, якщо його ще немає
+    if (attribute.type === 'checkbox' && !selectedAttributes.value[attribute.code]) {
+      selectedAttributes.value[attribute.code] = [];
+    }
+    
+    // Ініціалізуємо діапазони атрибутів, якщо їх ще немає
+    if (attribute.type === 'range' && !rangeAttributes.value[attribute.code]) {
+      rangeAttributes.value[attribute.code] = [null, null];
+    }
+  });
+  
+  return groups;
+});
+
+// Перевірка наявності фільтра знижки
+const hasDiscountFilter = computed(() => {
+  return productAttributes.value.some(attr => attr.code === 'discount');
+});
+
+// Метод для отримання назви групи для відображення
+const getGroupDisplayName = (groupName: string): string => {
+  const groupDisplayNames: Record<string, string> = {
+    'general': 'Загальні характеристики',
+    'nutrition': 'Харчова цінність',
+    'storage': 'Умови зберігання',
+    'other': 'Інші характеристики'
+  };
+  
+  return groupDisplayNames[groupName] || groupName;
 };
 </script> 
