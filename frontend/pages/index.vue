@@ -1,98 +1,150 @@
 <template>
-  <div class="container mx-auto px-4 py-8">
-    <div class="text-center mb-12">
-      <h1 class="text-4xl font-bold text-primary mb-4">Ласкаво просимо до NutsShop</h1>
-      <p class="text-xl text-gray-600">Найкращі горішки та кондитерські вироби за найкращими цінами</p>
-    </div>
+  <div>
+    <!-- Hero секція -->
+    <section class="relative bg-amber-50">
+      <div class="container mx-auto px-4 py-12 md:py-24">
+        <div class="flex flex-col md:flex-row items-center">
+          <div class="w-full md:w-1/2 mb-8 md:mb-0 text-center md:text-left">
+            <h1 class="text-3xl md:text-5xl font-bold text-gray-900 mb-4">Натуральні горіхи та сухофрукти</h1>
+            <p class="text-lg text-gray-600 mb-8">Найкращі продукти для вашого здоров'я та гарного самопочуття за найкращими цінами</p>
+            <NuxtLink to="/catalog" class="inline-block bg-amber-600 hover:bg-amber-700 text-white py-3 px-8 rounded-full font-medium text-lg transition-colors duration-300">
+              Перейти до каталогу
+            </NuxtLink>
+          </div>
+          <div class="w-full md:w-1/2">
+            <img src="/images/hero-nuts.png" alt="Асортимент горіхів" class="rounded-lg shadow-lg w-full h-auto max-w-lg mx-auto">
+          </div>
+        </div>
+      </div>
+      <!-- Декоративний елемент -->
+      <div class="absolute bottom-0 left-0 right-0 h-12 bg-white" style="clip-path: ellipse(50% 100% at 50% 100%);"></div>
+    </section>
 
-    <!-- Hero section -->
-    <section class="mb-16 mt-8">
-      <div class="relative rounded-xl overflow-hidden shadow-lg">
-        <img src="/images/hero-bg.jpg" alt="Натуральні горіхи та сухофрукти" class="w-full h-auto md:h-96 object-cover" />
-        <div class="absolute inset-0 bg-black bg-opacity-50 flex flex-col justify-center items-center text-center p-6">
-          <h1 class="text-3xl md:text-5xl font-bold text-white mb-4">Натуральні горіхи та сухофрукти</h1>
-          <p class="text-lg md:text-xl text-white mb-8 max-w-2xl">Найкращі продукти для вашого здоров'я та гарного самопочуття</p>
-          <NuxtLink to="/catalog" class="bg-amber-600 hover:bg-amber-700 text-white py-3 px-8 rounded-full font-medium text-lg transition-colors duration-300">
-            Перейти до каталогу
+    <!-- Переваги -->
+    <section class="py-12 md:py-20">
+      <div class="container mx-auto px-4">
+        <h2 class="text-2xl md:text-3xl font-semibold text-center mb-12">Чому обирають нас</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div class="p-6 bg-white rounded-xl shadow-sm text-center hover:shadow-lg transition-shadow duration-300">
+            <div class="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-amber-600" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
+                <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z" />
+              </svg>
+            </div>
+            <h3 class="text-lg font-medium mb-2">Швидка доставка</h3>
+            <p class="text-gray-600">Доставка по всій країні протягом 1-3 робочих днів</p>
+          </div>
+          <div class="p-6 bg-white rounded-xl shadow-sm text-center hover:shadow-lg transition-shadow duration-300">
+            <div class="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-amber-600" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+              </svg>
+            </div>
+            <h3 class="text-lg font-medium mb-2">Гарантія якості</h3>
+            <p class="text-gray-600">Всі наші товари проходять ретельний контроль якості</p>
+          </div>
+          <div class="p-6 bg-white rounded-xl shadow-sm text-center hover:shadow-lg transition-shadow duration-300">
+            <div class="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-amber-600" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a3 3 0 013-3h5c.256 0 .512.098.707.293l7 7zM5 6a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+              </svg>
+            </div>
+            <h3 class="text-lg font-medium mb-2">Найкращі ціни</h3>
+            <p class="text-gray-600">Ми постійно моніторимо ринок для найвигідніших пропозицій</p>
+          </div>
+          <div class="p-6 bg-white rounded-xl shadow-sm text-center hover:shadow-lg transition-shadow duration-300">
+            <div class="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-amber-600" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-2 0c0 .993-.241 1.929-.668 2.754l-1.524-1.525a3.997 3.997 0 00.078-2.183l1.562-1.562C15.802 8.249 16 9.1 16 10zm-5.165 3.913l1.58 1.58A5.98 5.98 0 0110 16a5.976 5.976 0 01-2.516-.552l1.562-1.562a4.006 4.006 0 001.789.027zm-4.677-2.796a4.002 4.002 0 01-.041-2.08l-.08.08-1.53-1.533A5.98 5.98 0 004 10c0 .954.223 1.856.619 2.657l1.54-1.54zm1.088-6.45A5.974 5.974 0 0110 4c.954 0 1.856.223 2.657.619l-1.54 1.54a4.002 4.002 0 00-2.346.033L7.246 4.668zM12 10a2 2 0 11-4 0 2 2 0 014 0z" clip-rule="evenodd" />
+              </svg>
+            </div>
+            <h3 class="text-lg font-medium mb-2">Підтримка 24/7</h3>
+            <p class="text-gray-600">Наша команда завжди готова відповісти на ваші запитання</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Популярні товари -->
+    <section class="py-12 bg-gray-50">
+      <div class="container mx-auto px-4">
+        <div class="flex justify-between items-center mb-8">
+          <h2 class="text-2xl md:text-3xl font-semibold">Популярні товари</h2>
+          <NuxtLink to="/catalog" class="text-amber-600 hover:text-amber-800 font-medium">Переглянути всі</NuxtLink>
+        </div>
+
+        <div v-if="featuredProducts.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <ProductCard v-for="product in featuredProducts" :key="product.id" :product="product" />
+        </div>
+        <div v-else class="flex justify-center items-center h-40 bg-white rounded-lg shadow-sm">
+          <p class="text-gray-500">Завантаження товарів...</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Категорії -->
+    <section class="py-12 md:py-20">
+      <div class="container mx-auto px-4">
+        <h2 class="text-2xl md:text-3xl font-semibold text-center mb-12">Категорії товарів</h2>
+
+        <div v-if="categories.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          <NuxtLink 
+            v-for="category in categories" 
+            :key="category.id" 
+            :to="`/catalog?category=${category.slug}`"
+            class="relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 group"
+          >
+            <div class="aspect-w-16 aspect-h-9">
+              <img 
+                v-if="category.image"
+                :src="category.image" 
+                :alt="category.name"
+                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              />
+              <img 
+                v-else
+                src="/images/placeholder-category.jpg" 
+                :alt="category.name"
+                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              />
+            </div>
+            <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-6">
+              <div>
+                <h3 class="text-white text-xl font-bold mb-1">{{ category.name }}</h3>
+                <p class="text-white/80 text-sm">Переглянути товари</p>
+              </div>
+            </div>
           </NuxtLink>
         </div>
+        <div v-else class="flex justify-center items-center h-40 bg-white rounded-lg shadow-sm">
+          <p class="text-gray-500">Завантаження категорій...</p>
+        </div>
       </div>
     </section>
 
-    <!-- Featured Products -->
-    <section class="mb-16">
-      <div class="flex justify-between items-center mb-6">
-        <h2 class="text-2xl font-semibold">Популярні товари</h2>
-        <NuxtLink to="/catalog" class="text-primary hover:underline">Переглянути всі</NuxtLink>
-      </div>
-
-      <div v-if="featuredProducts.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <ProductCard v-for="product in featuredProducts" :key="product.id" :product="product" />
-      </div>
-      <div v-else class="flex justify-center items-center h-40 bg-gray-100 rounded-lg">
-        <p class="text-gray-500">Завантаження товарів...</p>
-      </div>
-    </section>
-
-    <!-- Categories Section -->
-    <section class="mb-16">
-      <div class="flex justify-between items-center mb-6">
-        <h2 class="text-2xl font-semibold">Категорії</h2>
-      </div>
-
-      <div v-if="categories.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        <NuxtLink 
-          v-for="category in categories" 
-          :key="category.id" 
-          :to="`/catalog?category=${category.slug}`"
-          class="relative overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 group"
-        >
-          <ImageProxy 
-            v-if="category.image"
-            :path="category.image"
-            :alt="category.name"
-            imgClass="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-            fallback="/images/placeholder-category.jpg"
-          />
-          <img 
-            v-else
-            src="/images/placeholder-category.jpg" 
-            :alt="category.name"
-            class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-          />
-          <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end justify-center p-4">
-            <h3 class="text-white text-xl font-bold">{{ category.name }}</h3>
-          </div>
-        </NuxtLink>
-      </div>
-      <div v-else class="flex justify-center items-center h-40 bg-gray-100 rounded-lg">
-        <p class="text-gray-500">Завантаження категорій...</p>
-      </div>
-    </section>
-
-    <!-- Benefits Section -->
-    <section class="mb-16">
-      <h2 class="text-2xl font-semibold mb-6 text-center">Чому обирають нас</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div class="p-6 bg-gray-50 rounded-xl shadow-sm text-center">
-          <div class="text-primary text-4xl mb-4"><i class="fas fa-shipping-fast"></i></div>
-          <h3 class="text-lg font-medium mb-2">Швидка доставка</h3>
-          <p class="text-gray-600">Доставка по всій країні протягом 1-3 робочих днів</p>
-        </div>
-        <div class="p-6 bg-gray-50 rounded-xl shadow-sm text-center">
-          <div class="text-primary text-4xl mb-4"><i class="fas fa-check-circle"></i></div>
-          <h3 class="text-lg font-medium mb-2">Гарантія якості</h3>
-          <p class="text-gray-600">Всі наші товари проходять ретельний контроль якості</p>
-        </div>
-        <div class="p-6 bg-gray-50 rounded-xl shadow-sm text-center">
-          <div class="text-primary text-4xl mb-4"><i class="fas fa-tags"></i></div>
-          <h3 class="text-lg font-medium mb-2">Найкращі ціни</h3>
-          <p class="text-gray-600">Ми постійно моніторимо ринок для найвигідніших пропозицій</p>
-        </div>
-        <div class="p-6 bg-gray-50 rounded-xl shadow-sm text-center">
-          <div class="text-primary text-4xl mb-4"><i class="fas fa-headset"></i></div>
-          <h3 class="text-lg font-medium mb-2">Підтримка 24/7</h3>
-          <p class="text-gray-600">Наша команда завжди готова відповісти на ваші запитання</p>
+    <!-- Підписка на розсилку -->
+    <section class="py-12 bg-amber-600">
+      <div class="container mx-auto px-4">
+        <div class="max-w-3xl mx-auto text-center">
+          <h2 class="text-2xl md:text-3xl font-semibold text-white mb-4">Підпишіться на розсилку</h2>
+          <p class="text-white/90 mb-8">Отримуйте інформацію про акції, знижки та нові надходження</p>
+          
+          <form class="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+            <input 
+              type="email" 
+              placeholder="Ваша електронна пошта"
+              class="flex-grow px-4 py-3 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-400"
+              required
+            >
+            <button 
+              type="submit"
+              class="px-6 py-3 bg-gray-900 hover:bg-gray-800 text-white font-medium rounded-md transition-colors duration-300"
+            >
+              Підписатися
+            </button>
+          </form>
+          <p class="text-white/80 text-sm mt-4">Ми не будемо надсилати спам. Ви можете відписатися в будь-який момент.</p>
         </div>
       </div>
     </section>
@@ -101,8 +153,6 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { useRuntimeConfig } from '#app';
-import ImageProxy from '../src/components/ImageProxy.vue';
 
 interface Product {
   id: number;
@@ -120,31 +170,107 @@ interface Category {
   image: string;
 }
 
-const featuredProducts = ref<Product[]>([]);
-const categories = ref<Category[]>([]);
-
-onMounted(async () => {
-  try {
-    const runtimeConfig = useRuntimeConfig();
-    // Fetch featured products
-    const productsResponse = await fetch(`${runtimeConfig.public.apiBaseUrl}/products?featured=1&limit=4`);
-    if (productsResponse.ok) {
-      featuredProducts.value = await productsResponse.json();
-    }
-    
-    // Fetch categories
-    const categoriesResponse = await fetch(`${runtimeConfig.public.apiBaseUrl}/categories?active=1`);
-    if (categoriesResponse.ok) {
-      categories.value = await categoriesResponse.json();
-    }
-  } catch (error) {
-    console.error('Error fetching data:', error);
+// Mock data for products
+const featuredProducts = ref<Product[]>([
+  {
+    id: 1,
+    name: 'Мигдаль обсмажений',
+    slug: 'mygdal-obsmazhenyy',
+    description: 'Смачний обсмажений мигдаль. Ідеальна закуска для перекусу.',
+    price: 250,
+    image: '/images/products/almonds.jpg'
+  },
+  {
+    id: 2,
+    name: 'Фісташки солоні',
+    slug: 'fistashky-soloni',
+    description: 'Хрусткі солоні фісташки. Ідеально підходять до пива або вина.',
+    price: 320,
+    image: '/images/products/pistachios.jpg'
+  },
+  {
+    id: 3,
+    name: 'Кеш\'ю сирий',
+    slug: 'keshyu-syryy',
+    description: 'Сирий кеш\'ю без солі. Натуральний смак для справжніх цінителів.',
+    price: 280,
+    image: '/images/products/cashew.jpg'
+  },
+  {
+    id: 4,
+    name: 'Волоський горіх',
+    slug: 'voloskyi-gorih',
+    description: 'Волоські горіхи вищого ґатунку. Багаті омега-3 жирними кислотами.',
+    price: 180,
+    image: '/images/products/walnuts.jpg'
   }
+]);
+
+// Mock data for categories
+const categories = ref<Category[]>([
+  {
+    id: 1,
+    name: 'Горіхи',
+    slug: 'nuts',
+    image: '/images/categories/nuts.jpg'
+  },
+  {
+    id: 2,
+    name: 'Сухофрукти',
+    slug: 'dried-fruits',
+    image: '/images/categories/dried-fruits.jpg'
+  },
+  {
+    id: 3,
+    name: 'Насіння',
+    slug: 'seeds',
+    image: '/images/categories/seeds.jpg'
+  },
+  {
+    id: 4,
+    name: 'Корисні солодощі',
+    slug: 'sweets',
+    image: '/images/categories/sweets.jpg'
+  },
+  {
+    id: 5,
+    name: 'Подарункові набори',
+    slug: 'gift-sets',
+    image: '/images/categories/gift-sets.jpg'
+  },
+  {
+    id: 6,
+    name: 'Суперфуди',
+    slug: 'superfoods',
+    image: '/images/categories/superfoods.jpg'
+  }
+]);
+
+// In a real application, you would fetch this data from API
+onMounted(async () => {
+  // Fetch products from API
+  // const productsResponse = await fetch('/api/products?featured=1&limit=4');
+  // featuredProducts.value = await productsResponse.json();
+  
+  // Fetch categories from API
+  // const categoriesResponse = await fetch('/api/categories?active=1');
+  // categories.value = await categoriesResponse.json();
 });
 </script>
 
 <style scoped>
-.text-primary {
-  @apply text-amber-600;
+/* Helper class for maintaining aspect ratio */
+.aspect-w-16 {
+  position: relative;
+  padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+}
+.aspect-h-9 {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
 }
 </style> 

@@ -18,7 +18,12 @@ export default defineNuxtConfig({
       link: [
         { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }
       ]
-    }
+    },
+    baseURL: '/'
+  },
+  server: {
+    host: '0.0.0.0',
+    port: 3000
   },
   runtimeConfig: {
     public: {
