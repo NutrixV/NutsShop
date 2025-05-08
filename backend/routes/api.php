@@ -1,5 +1,10 @@
 <?php
 
+use App\Http\Controllers\Api\CartController;
+use App\Http\Controllers\Api\CategoryController;
+use App\Http\Controllers\Api\CustomerController;
+use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\ProductController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -21,4 +26,41 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 // Public API routes
 Route::get('/', function () {
     return ['status' => 'ok', 'message' => 'NutsShop API is running'];
+});
+
+// Public routes
+Route::get('/categories', [CategoryController::class, 'index']);
+Route::get('/categories/{id}', [CategoryController::class, 'show']);
+
+Route::get('/products', [ProductController::class, 'index']);
+Route::get('/products/{id}', [ProductController::class, 'show']);
+
+// Customer authentication
+Route::post('/customers/register', [CustomerController::class, 'register']);
+Route::post('/customers/login', [CustomerController::class, 'login']);
+
+// Cart (Quote) routes
+Route::get('/cart', function (Request $request) {
+    return app()->make(CartController::class)->show($request);
+});
+Route::post('/cart/items', [CartController::class, 'addItem']);
+Route::put('/cart/items/{id}', [CartController::class, 'updateItem']);
+Route::delete('/cart/items/{id}', [CartController::class, 'removeItem']);
+
+// Protected routes
+Route::middleware('auth:sanctum')->group(function () {
+    // Customer profile
+    Route::get('/customers/me', [CustomerController::class, 'profile']);
+    Route::put('/customers/me', [CustomerController::class, 'update']);
+    
+    // Customer addresses
+    Route::get('/customers/addresses', [CustomerController::class, 'addresses']);
+    Route::post('/customers/addresses', [CustomerController::class, 'addAddress']);
+    Route::put('/customers/addresses/{id}', [CustomerController::class, 'updateAddress']);
+    Route::delete('/customers/addresses/{id}', [CustomerController::class, 'deleteAddress']);
+    
+    // Orders
+    Route::get('/orders', [OrderController::class, 'index']);
+    Route::get('/orders/{id}', [OrderController::class, 'show']);
+    Route::post('/orders', [OrderController::class, 'store']);
 });

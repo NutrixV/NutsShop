@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Response;
 
 /*
 |--------------------------------------------------------------------------
@@ -16,6 +18,11 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+
+// Перенаправлення з localhost на 127.0.0.1 для вирішення CORS проблеми
+Route::get('/storage/{path}', function($path) {
+    return redirect('http://127.0.0.1:8090/storage/' . $path);
+})->where('path', '.*');
 
 // Health check endpoint
 Route::get('/health', function () {
@@ -40,4 +47,24 @@ if (app()->environment('local')) {
         
         return response()->json($routes);
     });
-} 
+}
+
+// Special route for images with CORS headers
+Route::get('/image/{path}', function ($path) {
+    $fullPath = storage_path('app/public/' . $path);
+    
+    if (!file_exists($fullPath)) {
+        abort(404);
+    }
+    
+    $file = File::get($fullPath);
+    $type = File::mimeType($fullPath);
+    
+    $response = Response::make($file, 200);
+    $response->header('Content-Type', $type);
+    $response->header('Access-Control-Allow-Origin', '*');
+    $response->header('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    $response->header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+    
+    return $response;
+})->where('path', '.*'); 

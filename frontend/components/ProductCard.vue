@@ -2,8 +2,16 @@
   <div class="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300">
     <NuxtLink :to="`/product/${product.slug}`">
       <div class="relative h-48 overflow-hidden">
+        <ImageProxy 
+          v-if="product.image"
+          :path="product.image"
+          :alt="product.name"
+          imgClass="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+          fallback="/images/placeholder-product.jpg"
+        />
         <img 
-          :src="product.image || '/images/placeholder-product.jpg'" 
+          v-else
+          src="/images/placeholder-product.jpg" 
           :alt="product.name"
           class="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
         />
@@ -31,6 +39,8 @@
 </template>
 
 <script setup lang="ts">
+import ImageProxy from '../src/components/ImageProxy.vue';
+
 interface Product {
   id: number;
   name: string;

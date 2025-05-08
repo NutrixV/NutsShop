@@ -17,6 +17,7 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Filament\Navigation\NavigationGroup;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -53,6 +54,23 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
-            ]);
+            ])
+            ->navigationGroups([
+                NavigationGroup::make()
+                     ->label('Каталог')
+                     ->icon('heroicon-o-square-3-stack-3d'),
+                NavigationGroup::make()
+                     ->label('Продажі')
+                     ->icon('heroicon-o-currency-dollar'),
+                NavigationGroup::make()
+                     ->label('Клієнти')
+                     ->icon('heroicon-o-users'),
+                NavigationGroup::make()
+                     ->label('Налаштування')
+                     ->icon('heroicon-o-cog-6-tooth')
+                     ->collapsed(),
+            ])
+            ->globalSearchKeyBindings(['command+k', 'ctrl+k'])
+            ->sidebarCollapsibleOnDesktop();
     }
 }

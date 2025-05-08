@@ -5,6 +5,20 @@
       <p class="text-xl text-gray-600">Найкращі горішки та кондитерські вироби за найкращими цінами</p>
     </div>
 
+    <!-- Hero section -->
+    <section class="mb-16 mt-8">
+      <div class="relative rounded-xl overflow-hidden shadow-lg">
+        <img src="/images/hero-bg.jpg" alt="Натуральні горіхи та сухофрукти" class="w-full h-auto md:h-96 object-cover" />
+        <div class="absolute inset-0 bg-black bg-opacity-50 flex flex-col justify-center items-center text-center p-6">
+          <h1 class="text-3xl md:text-5xl font-bold text-white mb-4">Натуральні горіхи та сухофрукти</h1>
+          <p class="text-lg md:text-xl text-white mb-8 max-w-2xl">Найкращі продукти для вашого здоров'я та гарного самопочуття</p>
+          <NuxtLink to="/catalog" class="bg-amber-600 hover:bg-amber-700 text-white py-3 px-8 rounded-full font-medium text-lg transition-colors duration-300">
+            Перейти до каталогу
+          </NuxtLink>
+        </div>
+      </div>
+    </section>
+
     <!-- Featured Products -->
     <section class="mb-16">
       <div class="flex justify-between items-center mb-6">
@@ -12,11 +26,11 @@
         <NuxtLink to="/catalog" class="text-primary hover:underline">Переглянути всі</NuxtLink>
       </div>
 
-      <div v-if="featuredProducts.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div v-if="featuredProducts.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <ProductCard v-for="product in featuredProducts" :key="product.id" :product="product" />
       </div>
       <div v-else class="flex justify-center items-center h-40 bg-gray-100 rounded-lg">
-        <p class="text-gray-500">Завантаження популярних товарів...</p>
+        <p class="text-gray-500">Завантаження товарів...</p>
       </div>
     </section>
 
@@ -26,15 +40,23 @@
         <h2 class="text-2xl font-semibold">Категорії</h2>
       </div>
 
-      <div v-if="categories.length > 0" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div v-if="categories.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <NuxtLink 
           v-for="category in categories" 
           :key="category.id" 
           :to="`/catalog?category=${category.slug}`"
           class="relative overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 group"
         >
+          <ImageProxy 
+            v-if="category.image"
+            :path="category.image"
+            :alt="category.name"
+            imgClass="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+            fallback="/images/placeholder-category.jpg"
+          />
           <img 
-            :src="category.image || '/images/placeholder-category.jpg'" 
+            v-else
+            src="/images/placeholder-category.jpg" 
             :alt="category.name"
             class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
           />
@@ -80,6 +102,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRuntimeConfig } from '#app';
+import ImageProxy from '../src/components/ImageProxy.vue';
 
 interface Product {
   id: number;
