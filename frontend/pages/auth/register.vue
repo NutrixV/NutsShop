@@ -150,6 +150,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
+import { useApi } from '~/composables/useApi';
 
 const router = useRouter();
 
@@ -194,48 +195,27 @@ const handleRegister = async () => {
     }
     
     try {
-      // Отримання CSRF токену
-      const tokenResponse = await fetch('http://localhost:8090/api/csrf-token', {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json'
-        },
-        credentials: 'include'
-      });
-      
-      const tokenData = await tokenResponse.json();
-      const csrfToken = tokenData.csrf_token;
+      const { post } = useApi();
       
       // Реєстрація через API
-      const response = await fetch('http://localhost:8090/api/customers/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'X-CSRF-TOKEN': csrfToken,
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          first_name: firstName.value,
-          last_name: lastName.value,
-          email: email.value,
-          password: password.value
-        })
+      const result = await post('/api/customers/register', {
+        first_name: firstName.value,
+        last_name: lastName.value,
+        email: email.value,
+        password: password.value
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        errorMessage.value = data.message || 'Помилка при реєстрації. Спробуйте пізніше.';
-        if (data.errors && data.errors.email) {
+      if (!result.success) {
+        errorMessage.value = result.data.message || 'Помилка при реєстрації. Спробуйте пізніше.';
+        if (result.data.errors && result.data.errors.email) {
           errorMessage.value = 'Користувач з таким email вже існує';
         }
         return;
       }
 
-      if (data.success) {
+      if (result.data.success) {
         // Зберегти інформацію про користувача у локальному сховищі
-        localStorage.setItem('customer', JSON.stringify(data.data.customer));
+        localStorage.setItem('customer', JSON.stringify(result.data.data.customer));
         localStorage.setItem('isLoggedIn', 'true');
         
         // Генеруємо подію для оновлення хедера
@@ -244,7 +224,7 @@ const handleRegister = async () => {
         // Перенаправлення на головну сторінку
         router.push('/');
       } else {
-        errorMessage.value = data.message || 'Сталася помилка при реєстрації. Спробуйте пізніше.';
+        errorMessage.value = result.data.message || 'Сталася помилка при реєстрації. Спробуйте пізніше.';
       }
     } catch (error) {
       errorMessage.value = 'Сталася помилка при реєстрації. Спробуйте пізніше.';

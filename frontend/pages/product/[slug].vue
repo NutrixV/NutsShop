@@ -61,7 +61,7 @@
                   v-for="(image, index) in allImages" 
                   :key="index" 
                   @click="currentImage = image" 
-                  class="rounded-md overflow-hidden border-2 aspect-w-1 aspect-h-1"
+                  class="rounded-md overflow-hidden border-2 h-20"
                   :class="{ 'border-amber-500': currentImage === image, 'border-transparent': currentImage !== image }"
                 >
                   <img 
@@ -580,30 +580,6 @@ onMounted(() => {
   padding: 1rem;
 }
 
-.aspect-w-4 {
-  position: relative;
-  padding-bottom: 75%; /* 4:3 Aspect Ratio */
-}
-.aspect-h-3 {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-}
-.aspect-w-1 {
-  position: relative;
-  padding-bottom: 100%; /* 1:1 Aspect Ratio */
-}
-.aspect-h-1 {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-}
+/* Видаляємо проблемні стилі з aspect ratio, які викликають проблеми з перекриттям */
+/* Натомість використовуємо фіксовану висоту для мініатюр (h-20 в HTML) */
 </style> 

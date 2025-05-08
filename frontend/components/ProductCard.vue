@@ -2,7 +2,7 @@
   <div class="group bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
     <!-- Зображення товару -->
     <div class="relative">
-      <div class="aspect-w-4 aspect-h-3 overflow-hidden">
+      <div class="product-image-container overflow-hidden">
         <img 
           v-if="product.image" 
           :src="product.image" 
@@ -124,19 +124,13 @@ const addToCart = async () => {
 </script>
 
 <style scoped>
-.aspect-w-4 {
-  position: relative;
-  padding-bottom: 75%; /* 4:3 Aspect Ratio */
+/* Видаляємо проблемні класи aspect-w-4 і aspect-h-3 і замінюємо їх на фіксовану висоту */
+.product-image-container {
+  height: 200px; /* Фіксована висота для контейнера зображення */
+  display: block;
+  position: relative; 
 }
-.aspect-h-3 {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-}
+
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;

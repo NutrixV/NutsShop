@@ -98,6 +98,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { useApi } from '~/composables/useApi';
 
 const router = useRouter();
 
@@ -114,44 +115,23 @@ const handleLogin = async () => {
   errorMessage.value = '';
   
   try {
-    // Отримання CSRF токену
-    const tokenResponse = await fetch('http://localhost:8090/api/csrf-token', {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json'
-      },
-      credentials: 'include'
-    });
-    
-    const tokenData = await tokenResponse.json();
-    const csrfToken = tokenData.csrf_token;
+    const { post } = useApi();
     
     // Запит до API для логіну
-    const response = await fetch('http://localhost:8090/api/customers/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'X-CSRF-TOKEN': csrfToken,
-      },
-      credentials: 'include',
-      body: JSON.stringify({
-        email: email.value,
-        password: password.value,
-        remember_me: rememberMe.value
-      })
+    const result = await post('/api/customers/login', {
+      email: email.value,
+      password: password.value,
+      remember_me: rememberMe.value
     });
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      errorMessage.value = data.message || 'Помилка при вході. Спробуйте пізніше.';
+    if (!result.success) {
+      errorMessage.value = result.data.message || 'Помилка при вході. Спробуйте пізніше.';
       return;
     }
 
-    if (data.success) {
+    if (result.data.success) {
       // Зберегти інформацію про користувача у локальному сховищі
-      localStorage.setItem('customer', JSON.stringify(data.data.customer));
+      localStorage.setItem('customer', JSON.stringify(result.data.data.customer));
       localStorage.setItem('isLoggedIn', 'true');
       
       // Генеруємо подію для оновлення хедера
@@ -160,7 +140,7 @@ const handleLogin = async () => {
       // Перенаправлення на головну сторінку
       router.push('/');
     } else {
-      errorMessage.value = data.message || 'Неправильний email або пароль';
+      errorMessage.value = result.data.message || 'Неправильний email або пароль';
     }
   } catch (error) {
     errorMessage.value = 'Сталася помилка при вході. Спробуйте пізніше.';
