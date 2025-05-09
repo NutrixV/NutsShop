@@ -3,9 +3,8 @@
 namespace Database\Seeders;
 
 use App\Models\CatalogCategory;
-use App\Models\CatalogProduct;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\File;
 
 class CatalogSeeder extends Seeder
 {
@@ -16,215 +15,136 @@ class CatalogSeeder extends Seeder
      */
     public function run(): void
     {
-        // Перевіряємо, чи вже існують категорії
-        if (CatalogCategory::count() > 0) {
-            $this->command->info('Категорії вже існують, пропускаємо створення.');
-            return;
-        }
+        // Копіювання зображень категорій
+        $this->copyImages();
         
-        // Створення категорій
-        $nutsCategory = CatalogCategory::create([
-            'name' => 'Горіхи',
-            'url_key' => 'nuts',
-            'is_active' => true,
-            'position' => 10
-        ]);
+        // Оновлюємо або створюємо категорії
+        // Замість перевірки на існування, оновлюємо категорії, якщо вони існують
+        $this->command->info('Оновлюємо категорії з зображеннями...');
         
-        $sweetsCategory = CatalogCategory::create([
-            'name' => 'Солодощі',
-            'url_key' => 'sweets',
-            'is_active' => true,
-            'position' => 20
-        ]);
+        // Створення/оновлення категорій
+        $nutsCategory = CatalogCategory::updateOrCreate(
+            ['name' => 'Горіхи', 'url_key' => 'nuts'],
+            [
+                'is_active' => true,
+                'position' => 10,
+                'image' => 'images/category/nuts-6985014_640.jpg'
+            ]
+        );
+        
+        $sweetsCategory = CatalogCategory::updateOrCreate(
+            ['name' => 'Солодощі', 'url_key' => 'sweets'],
+            [
+                'is_active' => true,
+                'position' => 20,
+                'image' => 'images/category/colorful-1284475_640.jpg'
+            ]
+        );
         
         // Підкатегорії для горіхів
-        $almondCategory = CatalogCategory::create([
-            'parent_id' => $nutsCategory->category_id,
-            'name' => 'Мигдаль',
-            'url_key' => 'almonds',
-            'is_active' => true,
-            'position' => 10
-        ]);
+        $almondCategory = CatalogCategory::updateOrCreate(
+            ['name' => 'Мигдаль', 'url_key' => 'almonds'],
+            [
+                'parent_id' => $nutsCategory->category_id,
+                'is_active' => true,
+                'position' => 10,
+                'image' => 'images/category/almond-83766_640.jpg'
+            ]
+        );
         
-        $walnutCategory = CatalogCategory::create([
-            'parent_id' => $nutsCategory->category_id,
-            'name' => 'Волоські горіхи',
-            'url_key' => 'walnuts',
-            'is_active' => true,
-            'position' => 20
-        ]);
+        $walnutCategory = CatalogCategory::updateOrCreate(
+            ['name' => 'Волоські горіхи', 'url_key' => 'walnuts'],
+            [
+                'parent_id' => $nutsCategory->category_id,
+                'is_active' => true,
+                'position' => 20,
+                'image' => 'images/category/walnut-2816935_640.jpg'
+            ]
+        );
         
-        $pistachioCategory = CatalogCategory::create([
-            'parent_id' => $nutsCategory->category_id,
-            'name' => 'Фісташки',
-            'url_key' => 'pistachios',
-            'is_active' => true,
-            'position' => 30
-        ]);
+        $pistachioCategory = CatalogCategory::updateOrCreate(
+            ['name' => 'Фісташки', 'url_key' => 'pistachios'],
+            [
+                'parent_id' => $nutsCategory->category_id,
+                'is_active' => true,
+                'position' => 30,
+                'image' => 'images/category/pistachio-5167236_640.jpg'
+            ]
+        );
         
         // Підкатегорії для солодощів
-        $chocolateCategory = CatalogCategory::create([
-            'parent_id' => $sweetsCategory->category_id,
-            'name' => 'Шоколад',
-            'url_key' => 'chocolate',
-            'is_active' => true,
-            'position' => 10
-        ]);
-        
-        $candyCategory = CatalogCategory::create([
-            'parent_id' => $sweetsCategory->category_id,
-            'name' => 'Цукерки',
-            'url_key' => 'candy',
-            'is_active' => true,
-            'position' => 20
-        ]);
-        
-        // Створення продуктів-горіхів
-        $almondProduct = $this->createProduct(
-            'Мигдаль обсмажений',
-            'almond-roasted',
-            'Ароматний обсмажений мигдаль, багатий на вітамін Е та корисні жири.',
-            250.00,
-            'Мигдаль',
-            true,
-            false,
-            true,
-            'US',
-            250,
-            date('Y-m-d', strtotime('+6 months'))
+        $chocolateCategory = CatalogCategory::updateOrCreate(
+            ['name' => 'Шоколад', 'url_key' => 'chocolate'],
+            [
+                'parent_id' => $sweetsCategory->category_id,
+                'is_active' => true,
+                'position' => 10,
+                'image' => 'images/category/chocolate-8919274_640.jpg'
+            ]
         );
         
-        $almondProduct->categories()->attach($almondCategory->category_id);
-        $almondProduct->categories()->attach($nutsCategory->category_id);
-        
-        $walnutProduct = $this->createProduct(
-            'Волоські горіхи очищені',
-            'walnut-shelled',
-            'Відбірні волоські горіхи з багатим смаком та високим вмістом Омега-3.',
-            220.00,
-            'Волоський горіх',
-            false,
-            false,
-            true,
-            'UA',
-            200,
-            date('Y-m-d', strtotime('+4 months'))
+        $candyCategory = CatalogCategory::updateOrCreate(
+            ['name' => 'Цукерки', 'url_key' => 'candy'],
+            [
+                'parent_id' => $sweetsCategory->category_id,
+                'is_active' => true,
+                'position' => 20,
+                'image' => 'images/category/ferrero-rocher-1141975_640.jpg'
+            ]
         );
         
-        $walnutProduct->categories()->attach($walnutCategory->category_id);
-        $walnutProduct->categories()->attach($nutsCategory->category_id);
-        
-        $pistachioProduct = $this->createProduct(
-            'Фісташки підсолені',
-            'pistachio-salted',
-            'Фісташки преміум якості з додаванням солі.',
-            350.00,
-            'Фісташка',
-            false,
-            true,
-            true,
-            'TR',
-            150,
-            date('Y-m-d', strtotime('+8 months'))
-        );
-        
-        $pistachioProduct->categories()->attach($pistachioCategory->category_id);
-        $pistachioProduct->categories()->attach($nutsCategory->category_id);
-        
-        // Створення солодощів
-        $darkChocolateProduct = $this->createProduct(
-            'Шоколад чорний 70%',
-            'dark-chocolate-70',
-            'Насичений чорний шоколад з вмістом какао 70%.',
-            120.00,
-            null,
-            false,
-            false,
-            true,
-            'CH',
-            100,
-            date('Y-m-d', strtotime('+12 months')),
-            8,
-            70.0
-        );
-        
-        $darkChocolateProduct->categories()->attach($chocolateCategory->category_id);
-        $darkChocolateProduct->categories()->attach($sweetsCategory->category_id);
-        
-        $milkChocolateProduct = $this->createProduct(
-            'Шоколад молочний з горіхами',
-            'milk-chocolate-nuts',
-            'Ніжний молочний шоколад з цілими лісовими горіхами.',
-            140.00,
-            null,
-            false,
-            false,
-            false,
-            'CH',
-            100,
-            date('Y-m-d', strtotime('+10 months')),
-            7,
-            36.0
-        );
-        
-        $milkChocolateProduct->categories()->attach($chocolateCategory->category_id);
-        $milkChocolateProduct->categories()->attach($sweetsCategory->category_id);
+        $this->command->info('Категорії успішно оновлено!');
     }
     
     /**
-     * Допоміжний метод для створення продукту
-     * 
-     * @param string $name Назва продукту
-     * @param string $urlKey URL-ключ продукту
-     * @param string $description Опис продукту
-     * @param float $price Ціна продукту
-     * @param string|null $nutType Тип горіха (якщо застосовно)
-     * @param bool|null $roasted Чи обсмажений
-     * @param bool|null $salted Чи солений
-     * @param bool|null $glutenFree Без глютену
-     * @param string|null $originCountry Країна походження
-     * @param int|null $weightG Вага в грамах
-     * @param string|null $expiryDate Термін придатності
-     * @param int|null $sweetness_level Рівень солодкості (0-10)
-     * @param float|null $cocoaPct Відсоток какао (для шоколаду)
-     * @return CatalogProduct
+     * Копіює зображення з директорії seeders у директорію публічного сховища
+     *
+     * @return void
      */
-    private function createProduct(
-        string $name, 
-        string $urlKey, 
-        string $description, 
-        float $price, 
-        ?string $nutType = null,
-        ?bool $roasted = false,
-        ?bool $salted = false,
-        ?bool $glutenFree = true,
-        ?string $originCountry = null,
-        ?int $weightG = null,
-        ?string $expiryDate = null,
-        ?int $sweetness_level = null,
-        ?float $cocoaPct = null
-    ): CatalogProduct {
-        return CatalogProduct::create([
-            'sku' => 'SKU-' . strtoupper(Str::random(8)),
-            'name' => $name,
-            'description' => $description,
-            'short_description' => Str::limit($description, 100),
-            'price' => $price,
-            'base_currency' => 'UAH',
-            'qty' => 100,
-            'is_in_stock' => true,
-            'visibility' => 4,
-            'status' => 1,
-            'nut_type' => $nutType,
-            'sweetness_level' => $sweetness_level,
-            'cocoa_pct' => $cocoaPct,
-            'salted' => $salted,
-            'roasted' => $roasted,
-            'gluten_free' => $glutenFree,
-            'organic' => false,
-            'origin_country' => $originCountry,
-            'weight_g' => $weightG,
-            'expiry_date' => $expiryDate
-        ]);
+    private function copyImages(): void
+    {
+        $this->command->info('Копіювання зображень категорій...');
+        
+        // В Docker контейнері шляхи інші, визначаємо базову директорію
+        $basePath = '/var/www';
+        if (!is_dir($basePath)) {
+            $basePath = base_path();
+        }
+        
+        // Створюємо директорію, якщо вона не існує
+        $targetDir = $basePath . '/storage/app/public/images/category';
+        if (!File::isDirectory($targetDir)) {
+            File::makeDirectory($targetDir, 0755, true);
+            $this->command->info("Створено директорію: {$targetDir}");
+        }
+        
+        // Шлях до директорії із seed-зображеннями
+        $sourceDir = $basePath . '/database/seeders/images/category';
+        
+        // Копіюємо всі зображення
+        if (File::isDirectory($sourceDir)) {
+            $files = File::files($sourceDir);
+            foreach ($files as $file) {
+                $filename = $file->getFilename();
+                $targetPath = $targetDir . '/' . $filename;
+                
+                // Копіюємо файл, якщо він не існує або відрізняється
+                if (!File::exists($targetPath) || md5_file($file->getPathname()) !== md5_file($targetPath)) {
+                    File::copy($file->getPathname(), $targetPath);
+                    $this->command->info("Скопійовано: {$filename}");
+                } else {
+                    $this->command->info("Файл вже існує: {$filename}");
+                }
+            }
+        } else {
+            $this->command->error("Директорія {$sourceDir} не знайдена!");
+        }
+        
+        // Переконуємося, що символічне посилання на сховище існує
+        $publicPath = $basePath . '/public';
+        if (is_dir($publicPath) && !file_exists($publicPath . '/storage')) {
+            $this->command->info('Створення символічного посилання на сховище...');
+            symlink($basePath . '/storage/app/public', $publicPath . '/storage');
+        }
     }
 }

@@ -92,23 +92,21 @@
           <NuxtLink 
             v-for="category in categories" 
             :key="category.id" 
-            :to="`/catalog?category=${category.slug}`"
-            class="relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 group"
+            :to="`/catalog?category_id=${category.id}`"
+            class="relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 group h-64"
           >
-            <div class="aspect-w-16 aspect-h-9">
-              <img 
-                v-if="category.image"
-                :src="category.image" 
-                :alt="category.name"
-                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-              />
-              <img 
-                v-else
-                src="/images/placeholder-category.jpg" 
-                :alt="category.name"
-                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-              />
-            </div>
+            <img 
+              v-if="category.image"
+              :src="category.image" 
+              :alt="category.name"
+              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+            <img 
+              v-else
+              src="/images/placeholder-category.jpg" 
+              :alt="category.name"
+              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            />
             <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-6">
               <div>
                 <h3 class="text-white text-xl font-bold mb-1">{{ category.name }}</h3>
@@ -127,6 +125,12 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
+import { useConfig } from '~/composables/useConfig';
+
+// Отримуємо URL API
+const { apiBaseUrl } = useConfig();
+// Базовий URL для зображень
+const baseUrl = apiBaseUrl.replace('/api', '');
 
 interface Product {
   id: number;
@@ -144,107 +148,144 @@ interface Category {
   image: string;
 }
 
-// Mock data for products
-const featuredProducts = ref<Product[]>([
-  {
-    id: 1,
-    name: 'Мигдаль обсмажений',
-    slug: 'mygdal-obsmazhenyy',
-    description: 'Смачний обсмажений мигдаль. Ідеальна закуска для перекусу.',
-    price: 250,
-    image: '/images/products/almonds.jpg'
-  },
-  {
-    id: 2,
-    name: 'Фісташки солоні',
-    slug: 'fistashky-soloni',
-    description: 'Хрусткі солоні фісташки. Ідеально підходять до пива або вина.',
-    price: 320,
-    image: '/images/products/pistachios.jpg'
-  },
-  {
-    id: 3,
-    name: 'Кеш\'ю сирий',
-    slug: 'keshyu-syryy',
-    description: 'Сирий кеш\'ю без солі. Натуральний смак для справжніх цінителів.',
-    price: 280,
-    image: '/images/products/cashew.jpg'
-  },
-  {
-    id: 4,
-    name: 'Волоський горіх',
-    slug: 'voloskyi-gorih',
-    description: 'Волоські горіхи вищого ґатунку. Багаті омега-3 жирними кислотами.',
-    price: 180,
-    image: '/images/products/walnuts.jpg'
-  }
-]);
+// Ініціалізуємо порожні масиви для продуктів і категорій
+const featuredProducts = ref<Product[]>([]);
+const categories = ref<Category[]>([]);
 
-// Mock data for categories
-const categories = ref<Category[]>([
-  {
-    id: 1,
-    name: 'Горіхи',
-    slug: 'nuts',
-    image: '/images/categories/nuts.jpg'
-  },
-  {
-    id: 2,
-    name: 'Сухофрукти',
-    slug: 'dried-fruits',
-    image: '/images/categories/dried-fruits.jpg'
-  },
-  {
-    id: 3,
-    name: 'Насіння',
-    slug: 'seeds',
-    image: '/images/categories/seeds.jpg'
-  },
-  {
-    id: 4,
-    name: 'Корисні солодощі',
-    slug: 'sweets',
-    image: '/images/categories/sweets.jpg'
-  },
-  {
-    id: 5,
-    name: 'Подарункові набори',
-    slug: 'gift-sets',
-    image: '/images/categories/gift-sets.jpg'
-  },
-  {
-    id: 6,
-    name: 'Суперфуди',
-    slug: 'superfoods',
-    image: '/images/categories/superfoods.jpg'
+// Завантаження популярних товарів
+const fetchFeaturedProducts = async () => {
+  try {
+    const response = await fetch(`${apiBaseUrl}/products?featured=1&limit=4`);
+    if (!response.ok) throw new Error('Не вдалося завантажити популярні товари');
+    
+    const data = await response.json();
+    
+    // Перетворюємо дані до потрібного формату
+    featuredProducts.value = (data.data || []).map((item: any) => ({
+      id: item.entity_id,
+      name: item.name,
+      slug: item.sku.toLowerCase().replace(/\s+/g, '-'),
+      description: item.short_description || item.description,
+      price: Number(item.price),
+      image: item.image ? `${baseUrl}/storage/${item.image}` : '/images/placeholder-product.jpg',
+    }));
+  } catch (error) {
+    console.error('Помилка при завантаженні популярних товарів:', error);
+    // Використовуємо тестові дані якщо не вдалося завантажити дані з API
+    featuredProducts.value = [
+      {
+        id: 1,
+        name: 'Мигдаль обсмажений',
+        slug: 'mygdal-obsmazhenyy',
+        description: 'Смачний обсмажений мигдаль. Ідеальна закуска для перекусу.',
+        price: 250,
+        image: '/images/products/almonds.jpg'
+      },
+      {
+        id: 2,
+        name: 'Фісташки солоні',
+        slug: 'fistashky-soloni',
+        description: 'Хрусткі солоні фісташки. Ідеально підходять до пива або вина.',
+        price: 320,
+        image: '/images/products/pistachios.jpg'
+      },
+      {
+        id: 3,
+        name: 'Кеш\'ю сирий',
+        slug: 'keshyu-syryy',
+        description: 'Сирий кеш\'ю без солі. Натуральний смак для справжніх цінителів.',
+        price: 280,
+        image: '/images/products/cashew.jpg'
+      },
+      {
+        id: 4,
+        name: 'Волоський горіх',
+        slug: 'voloskyi-gorih',
+        description: 'Волоські горіхи вищого ґатунку. Багаті омега-3 жирними кислотами.',
+        price: 180,
+        image: '/images/products/walnuts.jpg'
+      }
+    ];
   }
-]);
+};
 
-// In a real application, you would fetch this data from API
-onMounted(async () => {
-  // Fetch products from API
-  // const productsResponse = await fetch('/api/products?featured=1&limit=4');
-  // featuredProducts.value = await productsResponse.json();
-  
-  // Fetch categories from API
-  // const categoriesResponse = await fetch('/api/categories?active=1');
-  // categories.value = await categoriesResponse.json();
+// Завантаження категорій
+const fetchCategories = async () => {
+  try {
+    const response = await fetch(`${apiBaseUrl}/categories?active=1`);
+    if (!response.ok) throw new Error('Не вдалося завантажити категорії');
+    
+    const data = await response.json();
+    
+    // Перетворюємо дані до потрібного формату
+    categories.value = data.map((item: any) => ({
+      id: item.category_id,
+      name: item.name,
+      slug: item.url_key,
+      image: item.image ? `${baseUrl}/storage/${item.image}` : '/images/placeholder-category.jpg',
+    }));
+  } catch (error) {
+    console.error('Помилка при завантаженні категорій:', error);
+    // Використовуємо тестові дані якщо не вдалося завантажити дані з API
+    categories.value = [
+      {
+        id: 1,
+        name: 'Горіхи',
+        slug: 'nuts',
+        image: '/images/categories/nuts.jpg'
+      },
+      {
+        id: 2,
+        name: 'Сухофрукти',
+        slug: 'dried-fruits',
+        image: '/images/categories/dried-fruits.jpg'
+      },
+      {
+        id: 3,
+        name: 'Насіння',
+        slug: 'seeds',
+        image: '/images/categories/seeds.jpg'
+      },
+      {
+        id: 4,
+        name: 'Корисні солодощі',
+        slug: 'sweets',
+        image: '/images/categories/sweets.jpg'
+      },
+      {
+        id: 5,
+        name: 'Подарункові набори',
+        slug: 'gift-sets',
+        image: '/images/categories/gift-sets.jpg'
+      },
+      {
+        id: 6,
+        name: 'Суперфуди',
+        slug: 'superfoods',
+        image: '/images/categories/superfoods.jpg'
+      }
+    ];
+  }
+};
+
+// Ініціалізація - завантажуємо дані при монтуванні компонента
+onMounted(() => {
+  fetchFeaturedProducts();
+  fetchCategories();
 });
 </script>
 
 <style scoped>
-/* Helper class for maintaining aspect ratio */
-.aspect-w-16 {
+/* Видаляємо старі стилі для aspect ratio */
+/* Замість них додаємо нові стилі для секції категорій */
+.group {
+  display: block;
   position: relative;
-  padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
 }
-.aspect-h-9 {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
+
+.group img {
   width: 100%;
   height: 100%;
+  object-fit: cover;
 }
 </style> 

@@ -10,7 +10,7 @@
           <span class="mx-2 text-gray-400">/</span>
           <NuxtLink 
             v-if="product?.category" 
-            :to="`/catalog?category=${product.category.slug}`" 
+            :to="`/catalog?category_id=${product.category.id}`" 
             class="text-gray-500 hover:text-amber-600"
           >
             {{ product?.category?.name }}
@@ -78,23 +78,10 @@
               <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">{{ product.name }}</h1>
               
               <div class="flex items-center mb-4">
-                <div class="flex items-center">
-                  <span 
-                    v-for="i in 5" 
-                    :key="i" 
-                    :class="[
-                      'text-xl',
-                      i <= Math.round(product.rating || 0) ? 'text-yellow-400' : 'text-gray-300'
-                    ]"
-                  >★</span>
-                </div>
-                <span class="ml-2 text-gray-600 text-sm">
-                  {{ product.reviews_count || 0 }} відгуків
-                </span>
-                <span class="ml-4 text-green-600 text-sm font-medium" v-if="product.in_stock">
+                <span class="text-green-600 text-sm font-medium" v-if="product.in_stock">
                   В наявності
                 </span>
-                <span class="ml-4 text-red-600 text-sm font-medium" v-else>
+                <span class="text-red-600 text-sm font-medium" v-else>
                   Немає в наявності
                 </span>
               </div>
@@ -222,30 +209,6 @@
                 </tbody>
               </table>
             </div>
-            
-            <!-- Відгуки -->
-            <div v-if="activeTab === 'reviews'" class="p-6">
-              <div v-if="product.reviews && product.reviews.length > 0">
-                <div v-for="(review, index) in product.reviews" :key="index" class="mb-6 border-b pb-6 last:border-b-0 last:pb-0">
-                  <div class="flex justify-between mb-2">
-                    <div>
-                      <span class="font-medium text-gray-800">{{ review.author }}</span>
-                      <span class="text-gray-500 text-sm ml-2">{{ formatDate(review.date) }}</span>
-                    </div>
-                    <div class="flex text-yellow-400">
-                      <span v-for="i in 5" :key="i" :class="i <= review.rating ? 'text-yellow-400' : 'text-gray-300'">★</span>
-                    </div>
-                  </div>
-                  <p class="text-gray-600">{{ review.text }}</p>
-                </div>
-              </div>
-              <div v-else class="text-center py-8">
-                <p class="text-gray-500 mb-4">Поки що немає відгуків на цей товар</p>
-                <button class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-md transition-colors duration-300">
-                  Написати відгук
-                </button>
-              </div>
-            </div>
           </div>
         </div>
         
@@ -266,9 +229,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import { computed, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
+import { useConfig } from '~/composables/useConfig';
+
+// Отримуємо базовий URL API з конфігурації
+const { apiBaseUrl } = useConfig();
+
+// Формуємо базову URL для зображень (без /api/)
+const baseUrl = apiBaseUrl.replace('/api', '');
 
 // Інтерфейси
 interface ProductVariant {
@@ -325,6 +295,7 @@ interface Product {
 
 // Стан компонента
 const route = useRoute();
+const router = useRouter();
 const loading = ref(true);
 const product = ref<Product | null>(null);
 const relatedProducts = ref<Product[]>([]);
@@ -332,12 +303,12 @@ const quantity = ref(1);
 const selectedVariant = ref<number | null>(null);
 const activeTab = ref('description');
 const currentImage = ref<string | null>(null);
+const currentSlug = ref<string | null>(null);
 
 // Вкладки
 const tabs = [
   { id: 'description', name: 'Опис' },
-  { id: 'specifications', name: 'Характеристики' },
-  { id: 'reviews', name: 'Відгуки' }
+  { id: 'specifications', name: 'Характеристики' }
 ];
 
 // Всі зображення товару
@@ -379,6 +350,84 @@ const addToCart = () => {
   });
 };
 
+// Функція налаштування продукту з даних API
+const setupProduct = (data: any) => {
+  // Перетворюємо дані з API в формат, який очікує наш компонент
+  product.value = {
+    id: data.entity_id,
+    name: data.name,
+    slug: data.sku.toLowerCase().replace(/\s+/g, '-'),
+    description: data.short_description || data.description,
+    long_description: data.description,
+    price: Number(data.price),
+    old_price: data.special_price ? Number(data.price) : undefined,
+    discount_percent: data.special_price ? Math.round((1 - Number(data.special_price) / Number(data.price)) * 100) : undefined,
+    image: data.image ? `${baseUrl}/storage/${data.image}` : '/images/placeholder-product.jpg',
+    gallery: data.gallery ? data.gallery.map((img: string) => `${baseUrl}/storage/${img}`) : [],
+    in_stock: data.is_in_stock,
+    category: data.categories && data.categories.length > 0 ? {
+      id: data.categories[0].category_id,
+      name: data.categories[0].name,
+      slug: data.categories[0].url_key
+    } : undefined,
+    features: [],
+    specifications: []
+  };
+  
+  // Додаємо характеристики товару
+  if (data.weight_g) {
+    product.value.specifications?.push({ name: 'Вага', value: `${data.weight_g} г` });
+    product.value.features?.push({ name: 'Вага', value: `${data.weight_g} г` });
+  }
+  
+  if (data.origin_country) {
+    product.value.specifications?.push({ 
+      name: 'Країна походження', 
+      value: getCountryName(data.origin_country) 
+    });
+    product.value.features?.push({ 
+      name: 'Країна', 
+      value: getCountryName(data.origin_country) 
+    });
+  }
+  
+  if (data.roasted) {
+    product.value.specifications?.push({ name: 'Тип обробки', value: 'Обсмажені' });
+    product.value.features?.push({ name: 'Обробка', value: 'Обсмажені' });
+  }
+  
+  if (data.salted) {
+    product.value.specifications?.push({ name: 'Спеціальна обробка', value: 'Солоні' });
+  }
+  
+  if (data.gluten_free) {
+    product.value.specifications?.push({ name: 'Без глютену', value: 'Так' });
+  }
+  
+  if (data.organic) {
+    product.value.specifications?.push({ name: 'Органічний продукт', value: 'Так' });
+  }
+  
+  if (data.cocoa_pct) {
+    product.value.specifications?.push({ name: 'Відсоток какао', value: `${data.cocoa_pct}%` });
+  }
+  
+  if (data.sweetness_level) {
+    product.value.specifications?.push({ 
+      name: 'Рівень солодкості', 
+      value: getSweetnessLevelName(data.sweetness_level) 
+    });
+  }
+  
+  // Встановлюємо перше зображення як активне
+  if (product.value && product.value.image) {
+    currentImage.value = product.value.image;
+  }
+  
+  // Завантажуємо пов'язані товари
+  fetchRelatedProducts();
+};
+
 // Завантаження товару
 const fetchProduct = async () => {
   loading.value = true;
@@ -387,102 +436,78 @@ const fetchProduct = async () => {
     // Отримуємо slug з URL
     const slug = route.params.slug as string;
     
-    // В реальному проекті тут буде запит до API
-    // const response = await fetch(`/api/products/${slug}`);
-    // product.value = await response.json();
+    // Скидаємо поточний продукт для оновлення даних
+    product.value = null;
+    currentSlug.value = slug;
     
-    // Тут використовуємо тестові дані
-    // Імітуємо затримку запиту
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // Визначаємо, чи є slug числовим ID
+    const isNumericId = !isNaN(Number(slug));
+    let productId = isNumericId ? Number(slug) : null;
     
-    // Тестові дані
-    product.value = {
-      id: 1,
-      name: 'Мигдаль обсмажений',
-      slug: 'mygdal-obsmazhenyy',
-      description: 'Смачний обсмажений мигдаль без солі. Ідеальна закуска для перекусу.',
-      long_description: `<p>Обсмажений мигдаль – це неймовірно смачна та корисна закуска, яка підходить для будь-якого випадку.</p>
-        <p>Мигдаль багатий на:</p>
-        <ul>
-          <li>Білок</li>
-          <li>Клітковину</li>
-          <li>Вітамін E</li>
-          <li>Магній</li>
-          <li>Здорові жири</li>
-        </ul>
-        <p>Наш мигдаль обсмажений без додавання олії, за технологією сухого обсмажування, що дозволяє зберегти максимум корисних речовин.</p>`,
-      price: 250,
-      old_price: 280,
-      discount_percent: 10,
-      price_per_kg: 500,
-      image: '/images/products/almonds.jpg',
-      gallery: [
-        '/images/products/almonds-1.jpg',
-        '/images/products/almonds-2.jpg',
-        '/images/products/almonds-3.jpg',
-      ],
-      rating: 4.7,
-      reviews_count: 24,
-      in_stock: true,
-      category: {
-        id: 1,
-        name: 'Горіхи',
-        slug: 'nuts'
-      },
-      features: [
-        { name: 'Вага', value: '500 г' },
-        { name: 'Країна', value: 'США' },
-        { name: 'Обробка', value: 'Обсмажені' }
-      ],
-      specifications: [
-        { name: 'Вага', value: '500 г' },
-        { name: 'Країна походження', value: 'США' },
-        { name: 'Тип обробки', value: 'Обсмажені без солі' },
-        { name: 'Калорійність', value: '576 ккал / 100 г' },
-        { name: 'Білки', value: '21.2 г / 100 г' },
-        { name: 'Жири', value: '49.9 г / 100 г' },
-        { name: 'Вуглеводи', value: '21.7 г / 100 г' },
-        { name: 'Термін придатності', value: '6 місяців' },
-        { name: 'Умови зберігання', value: 'Зберігати в сухому, прохолодному місці' },
-      ],
-      variants: [
-        { id: 1, name: '100 г', price: 60 },
-        { id: 2, name: '250 г', price: 140 },
-        { id: 3, name: '500 г', price: 250 },
-        { id: 4, name: '1 кг', price: 480 }
-      ],
-      reviews: [
-        {
-          id: 1,
-          author: 'Ірина К.',
-          rating: 5,
-          text: 'Дуже смачний мигдаль! Свіжий, хрумкий, ідеально обсмажений. Замовляю вже не вперше, якість стабільно висока.',
-          date: '2023-08-15'
-        },
-        {
-          id: 2,
-          author: 'Олександр М.',
-          rating: 4,
-          text: 'Хороший продукт, але деякі горішки трохи пересмажені. В цілому задоволений покупкою.',
-          date: '2023-07-22'
-        },
-        {
-          id: 3,
-          author: 'Марія П.',
-          rating: 5,
-          text: 'Найкращий мигдаль, який я куштувала! Буду замовляти ще.',
-          date: '2023-06-10'
+    // Якщо це не ID, шукаємо за SKU
+    if (!isNumericId) {
+      const allProductsResponse = await fetch(`${apiBaseUrl}/products?limit=50`);
+      
+      if (!allProductsResponse.ok) {
+        throw new Error('Не вдалося отримати список товарів');
+      }
+      
+      const allProductsData = await allProductsResponse.json();
+      
+      if (allProductsData.data && allProductsData.data.length > 0) {
+        // Спочатку шукаємо точний збіг за SKU
+        let foundProduct = allProductsData.data.find((p: any) => {
+          // Порівнюємо нормалізовані значення SKU з slug
+          const normalizedSku = p.sku.toLowerCase().trim().replace(/\s+/g, '-');
+          return normalizedSku === slug;
+        });
+        
+        // Якщо не знайдено, шукаємо за частковим збігом SKU
+        if (!foundProduct) {
+          foundProduct = allProductsData.data.find((p: any) => {
+            const normalizedSku = p.sku.toLowerCase().trim().replace(/\s+/g, '-');
+            return normalizedSku.includes(slug) || slug.includes(normalizedSku);
+          });
         }
-      ]
-    };
-    
-    // Встановлюємо перше зображення як активне
-    if (product.value && product.value.image) {
-      currentImage.value = product.value.image;
+        
+        // Якщо не знайдено за SKU, шукаємо частковий збіг за назвою
+        if (!foundProduct) {
+          foundProduct = allProductsData.data.find((p: any) => {
+            const normalizedName = p.name.toLowerCase().trim().replace(/\s+/g, '-');
+            return normalizedName.includes(slug) || slug.includes(normalizedName);
+          });
+        }
+        
+        // Якщо нічого не допомогло і slug містить "fistashky", знаходимо фісташки
+        if (!foundProduct && slug.includes('fistashky')) {
+          foundProduct = allProductsData.data.find((p: any) => 
+            p.name.includes('Фісташк')
+          );
+        }
+        
+        if (foundProduct) {
+          productId = foundProduct.entity_id;
+        } else {
+          // Якщо нічого не знайдено, використовуємо перший продукт
+          productId = allProductsData.data[0].entity_id;
+        }
+      }
     }
     
-    // Завантажуємо пов'язані товари
-    fetchRelatedProducts();
+    if (!productId) {
+      throw new Error('Не вдалося визначити ідентифікатор товару');
+    }
+    
+    // Отримуємо детальну інформацію про продукт за його id
+    const response = await fetch(`${apiBaseUrl}/products/${productId}`);
+    
+    if (!response.ok) {
+      throw new Error('Не вдалося завантажити товар');
+    }
+    
+    const data = await response.json();
+    
+    setupProduct(data);
     
   } catch (error) {
     console.error('Помилка при завантаженні товару:', error);
@@ -492,73 +517,82 @@ const fetchProduct = async () => {
   }
 };
 
+// Додаємо допоміжні функції для роботи з атрибутами
+const getCountryName = (code: string): string => {
+  const countries: Record<string, string> = {
+    'UA': 'Україна',
+    'US': 'США',
+    'TR': 'Туреччина',
+    'IT': 'Італія',
+    'ES': 'Іспанія',
+    'FR': 'Франція',
+    'GR': 'Греція',
+    'CN': 'Китай',
+    'IN': 'Індія',
+    'ID': 'Індонезія',
+    'BR': 'Бразилія',
+    'CL': 'Чилі',
+    'AU': 'Австралія',
+    'NZ': 'Нова Зеландія'
+  };
+  
+  return countries[code] || code;
+};
+
+const getSweetnessLevelName = (level: number): string => {
+  const levels: Record<number, string> = {
+    1: 'Не солодкий',
+    2: 'Трохи солодкий',
+    3: 'Помірно солодкий',
+    4: 'Солодкий',
+    5: 'Дуже солодкий'
+  };
+  
+  return levels[level] || `Рівень ${level}`;
+};
+
+// Оновлюємо функцію fetchRelatedProducts, щоб отримувати випадкові продукти
 const fetchRelatedProducts = async () => {
   try {
-    // В реальному проекті тут буде запит до API
-    // const response = await fetch(`/api/products/related/${product.value.id}`);
-    // relatedProducts.value = await response.json();
+    // Запит випадкових товарів
+    const params = new URLSearchParams();
+    params.append('limit', '8'); // Збільшуємо ліміт, щоб мати можливість вибрати випадкові продукти
     
-    // Тестові дані
-    relatedProducts.value = [
-      {
-        id: 2,
-        name: 'Фісташки солоні',
-        slug: 'fistashky-soloni',
-        description: 'Хрусткі солоні фісташки. Ідеально підходять до пива або вина.',
-        price: 320,
-        category: {
-          id: 1,
-          name: 'Горіхи',
-          slug: 'nuts'
-        },
-        image: '/images/products/pistachios.jpg',
-        in_stock: true
-      },
-      {
-        id: 3,
-        name: 'Кеш\'ю сирий',
-        slug: 'keshyu-syryy',
-        description: 'Сирий кеш\'ю без солі. Натуральний смак для справжніх цінителів.',
-        price: 280,
-        category: {
-          id: 1,
-          name: 'Горіхи',
-          slug: 'nuts'
-        },
-        image: '/images/products/cashew.jpg',
-        in_stock: true
-      },
-      {
-        id: 4,
-        name: 'Волоський горіх',
-        slug: 'voloskyi-gorih',
-        description: 'Волоські горіхи вищого ґатунку. Багаті омега-3 жирними кислотами.',
-        price: 180,
-        category: {
-          id: 1,
-          name: 'Горіхи',
-          slug: 'nuts'
-        },
-        image: '/images/products/walnuts.jpg',
-        in_stock: true
-      },
-      {
-        id: 6,
-        name: 'Фініки Medjool',
-        slug: 'finiky-medjool',
-        description: 'Преміальні фініки сорту Medjool. Великі та соковиті.',
-        price: 350,
-        category: {
-          id: 2,
-          name: 'Сухофрукти',
-          slug: 'dried-fruits'
-        },
-        discount_percent: 15,
-        old_price: 420,
-        image: '/images/products/dates.jpg',
-        in_stock: true
-      }
-    ];
+    if (product.value) {
+      // Виключаємо поточний товар з результатів
+      params.append('exclude_id', product.value.id.toString());
+    }
+    
+    const response = await fetch(`${apiBaseUrl}/products?${params.toString()}`);
+    
+    if (!response.ok) {
+      throw new Error('Не вдалося завантажити пов\'язані товари');
+    }
+    
+    const data = await response.json();
+    
+    // Перемішуємо продукти для ще більшої випадковості
+    const shuffledProducts = (data.data || [])
+      .filter((p: any) => p.entity_id !== product.value?.id)
+      .sort(() => 0.5 - Math.random());
+    
+    // Перетворюємо дані до потрібного формату (лише перші 4)
+    relatedProducts.value = shuffledProducts.slice(0, 4).map((item: any) => ({
+      id: item.entity_id,
+      name: item.name,
+      slug: item.sku.toLowerCase().replace(/\s+/g, '-'),
+      description: item.short_description || item.description,
+      price: Number(item.price),
+      old_price: item.special_price ? Number(item.price) : undefined,
+      discount_percent: item.special_price ? Math.round((1 - Number(item.special_price) / Number(item.price)) * 100) : undefined,
+      image: item.image ? `${baseUrl}/storage/${item.image}` : '/images/placeholder-product.jpg',
+      in_stock: item.is_in_stock,
+      category: item.categories && item.categories.length > 0 ? {
+        id: item.categories[0].category_id,
+        name: item.categories[0].name,
+        slug: item.categories[0].url_key
+      } : undefined
+    }));
     
   } catch (error) {
     console.error('Помилка при завантаженні пов\'язаних товарів:', error);
@@ -568,6 +602,24 @@ const fetchRelatedProducts = async () => {
 
 onMounted(() => {
   fetchProduct();
+});
+
+// Слідкуємо за змінами параметрів URL
+watch(() => route.params.slug, (newSlug, oldSlug) => {
+  if (newSlug !== oldSlug) {
+    fetchProduct();
+  }
+}, { immediate: true }); // immediate: true забезпечує виконання при ініціалізації
+
+// Додаємо обробник навігації для підтримки нормальної роботи при прямому переході на URL
+router.beforeResolve((to: any, from: any, next: any) => {
+  // Скидаємо стан при зміні маршруту на інший продукт
+  if (to.name === 'product-slug' && from.name === 'product-slug' && to.params.slug !== from.params.slug) {
+    product.value = null;
+    currentSlug.value = null;
+    relatedProducts.value = [];
+  }
+  next();
 });
 </script>
 

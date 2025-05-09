@@ -25,6 +25,11 @@ class ProductController extends Controller
             });
         }
         
+        // Виключити конкретний продукт з результатів
+        if ($request->has('exclude_id')) {
+            $query->where('entity_id', '!=', $request->input('exclude_id'));
+        }
+        
         // Фільтрувати за пошуковим запитом, якщо задано
         if ($request->has('search')) {
             $searchTerm = '%' . $request->input('search') . '%';
