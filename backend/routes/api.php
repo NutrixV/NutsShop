@@ -53,6 +53,9 @@ Route::post('/cart/items', [CartController::class, 'addItem']);
 Route::put('/cart/items/{id}', [CartController::class, 'updateItem']);
 Route::delete('/cart/items/{id}', [CartController::class, 'removeItem']);
 
+// Order routes (available for all users)
+Route::post('/orders', [OrderController::class, 'store']);
+
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
     // Customer profile
@@ -65,8 +68,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/customers/addresses/{id}', [CustomerController::class, 'updateAddress']);
     Route::delete('/customers/addresses/{id}', [CustomerController::class, 'deleteAddress']);
     
-    // Orders
+    // Order routes (only for authenticated users)
     Route::get('/orders', [OrderController::class, 'index']);
     Route::get('/orders/{id}', [OrderController::class, 'show']);
-    Route::post('/orders', [OrderController::class, 'store']);
 });

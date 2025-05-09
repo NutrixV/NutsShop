@@ -20,6 +20,8 @@ return new class extends Migration
             $table->decimal('subtotal', 12, 2)->nullable();
             $table->decimal('grand_total', 12, 2)->nullable();
             $table->char('currency', 3)->default('UAH');
+            $table->json('shipping_address')->nullable();
+            $table->string('payment_method', 20)->nullable();
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent();
 

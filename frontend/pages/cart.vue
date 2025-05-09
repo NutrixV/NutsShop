@@ -22,8 +22,9 @@
       </div>
       
       <!-- Кошик з товарами -->
-      <div v-else class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div class="lg:col-span-2">
+      <div v-else class="flex flex-col lg:flex-row gap-8">
+        <!-- Список товарів (ліворуч на десктопі) -->
+        <div class="lg:w-2/3">
           <div class="bg-white rounded-lg shadow-sm">
             <!-- Заголовок кошика на десктопі -->
             <div class="hidden md:flex py-4 px-6 border-b text-sm text-gray-600 font-medium">
@@ -38,8 +39,8 @@
             <!-- Список товарів -->
             <div>
               <div v-for="item in items" :key="item.item_id" class="border-t first:border-t-0">
-                <div class="p-4 flex flex-wrap md:flex-nowrap items-center">
-                  <!-- Кнопка видалення (на мобільних вгорі) -->
+                <div class="p-4 flex flex-wrap md:flex-nowrap items-center relative">
+                  <!-- Кнопка видалення (на мобільних справа) -->
                   <button 
                     @click="handleRemoveItem(item.item_id)" 
                     class="md:hidden absolute top-4 right-4 text-gray-400 hover:text-red-500"
@@ -66,7 +67,7 @@
                   </div>
                   
                   <!-- Інформація про товар -->
-                  <div class="flex-1 min-w-[200px] mb-4 md:mb-0">
+                  <div class="flex-1 min-w-[200px] mb-4 md:mb-0 pr-8 md:pr-0">
                     <h3 class="text-gray-900 font-medium">{{ item.name }}</h3>
                     <div class="text-sm text-gray-500 mt-1">
                       <span>{{ item.sku }}</span>
@@ -152,55 +153,31 @@
               </div>
             </div>
           </div>
+        </div>
           
-          <!-- Підсумок замовлення -->
-          <div class="lg:w-full">
-            <div class="bg-white rounded-lg shadow-sm p-6 mt-8 lg:mt-0">
-              <h2 class="text-xl font-semibold text-gray-900 mb-4">Підсумок замовлення</h2>
-              
-              <div class="space-y-4 mb-6">
-                <div class="flex justify-between">
-                  <span class="text-gray-600">Сума товарів:</span>
-                  <span class="text-gray-900 font-medium">{{ formatPrice(subtotal) }} грн</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-gray-600">Знижка:</span>
-                  <span class="text-red-600 font-medium">-{{ formatPrice(discount) }} грн</span>
-                </div>
-                <div class="flex justify-between border-t pt-4">
-                  <span class="text-gray-900 font-bold">Разом до сплати:</span>
-                  <span class="text-gray-900 font-bold">{{ formatPrice(total) }} грн</span>
-                </div>
+        <!-- Підсумок замовлення (праворуч на десктопі) -->
+        <div class="lg:w-1/3">
+          <div class="bg-white rounded-lg shadow-sm p-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">Підсумок замовлення</h2>
+            
+            <div class="space-y-4 mb-6">
+              <div class="flex justify-between">
+                <span class="text-gray-600">Сума товарів:</span>
+                <span class="text-gray-900 font-medium">{{ formatPrice(subtotal) }} грн</span>
               </div>
-              
-              <!-- Промокод -->
-              <div class="mb-6">
-                <label for="promo-code" class="block text-gray-700 font-medium mb-2">Промокод:</label>
-                <div class="flex">
-                  <input 
-                    type="text" 
-                    id="promo-code" 
-                    v-model="promoCode"
-                    class="flex-1 px-4 py-2 border border-gray-300 rounded-l-md focus:ring-amber-500 focus:border-amber-500"
-                    placeholder="Введіть промокод"
-                  >
-                  <button 
-                    @click="applyPromoCode" 
-                    class="px-4 py-2 bg-gray-800 text-white rounded-r-md hover:bg-gray-900 transition-colors duration-300"
-                  >
-                    Застосувати
-                  </button>
-                </div>
+              <div class="flex justify-between border-t pt-4">
+                <span class="text-gray-900 font-bold">Разом до сплати:</span>
+                <span class="text-gray-900 font-bold">{{ formatPrice(subtotal) }} грн</span>
               </div>
-              
-              <!-- Кнопка оформлення замовлення -->
-              <button 
-                @click="checkout" 
-                class="w-full py-3 px-6 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded-md shadow-sm transition-colors duration-300"
-              >
-                Оформити замовлення
-              </button>
             </div>
+            
+            <!-- Кнопка оформлення замовлення -->
+            <button 
+              @click="checkout" 
+              class="w-full py-3 px-6 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded-md shadow-sm transition-colors duration-300"
+            >
+              Оформити замовлення
+            </button>
           </div>
         </div>
       </div>
@@ -211,10 +188,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useCart } from '~/composables/useCart';
-
-// Стан компонента
-const promoCode = ref('');
-const promoDiscount = ref(0);
 
 // Отримуємо дані та методи кошика з composable
 const { 
@@ -228,13 +201,6 @@ const {
   removeCartItem, 
   clearCart 
 } = useCart();
-
-// Підрахунок знижки та загальної суми
-const discount = computed(() => promoDiscount.value);
-
-const total = computed(() => {
-  return subtotal.value - discount.value;
-});
 
 // Методи управління елементами кошика
 const increaseQuantity = async (item: any) => {
@@ -265,22 +231,6 @@ const handleClearCart = async () => {
   }
 };
 
-const applyPromoCode = () => {
-  if (!promoCode.value.trim()) {
-    alert('Будь ласка, введіть промокод');
-    return;
-  }
-  
-  // Імітація перевірки промокоду
-  if (promoCode.value.toUpperCase() === 'NUTS20') {
-    promoDiscount.value = Math.round(subtotal.value * 0.2);
-    alert('Промокод успішно застосовано! Знижка 20%');
-  } else {
-    promoDiscount.value = 0;
-    alert('Недійсний промокод');
-  }
-};
-
 const checkout = () => {
   // Перенаправлення на сторінку оформлення замовлення
   window.location.href = '/checkout';
@@ -298,5 +248,17 @@ onMounted(() => {
   aspect-ratio: 1/1;
   overflow: hidden;
   border-radius: 0.375rem;
+}
+
+/* Стилі для контейнера товару */
+.border-t {
+  position: relative;
+}
+
+/* Стилі для мобільної версії */
+@media (max-width: 768px) {
+  .border-t {
+    padding-top: 0.5rem;
+  }
 }
 </style> 

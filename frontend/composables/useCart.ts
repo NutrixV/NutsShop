@@ -48,6 +48,7 @@ export function useCart() {
   const subtotal = computed(() => cart.value?.subtotal || 0);
   const grandTotal = computed(() => cart.value?.grand_total || 0);
   const items = computed(() => cart.value?.items || []);
+  const cartId = computed(() => cart.value?.entity_id || '');
   
   // Format price for display
   const formatPrice = (price: number): string => {
@@ -312,6 +313,7 @@ export function useCart() {
     subtotal,
     grandTotal,
     items,
+    cartId,
     formatPrice,
     loadCart,
     addToCart,
