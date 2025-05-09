@@ -15,7 +15,8 @@
             </span>
             <div>
               <h3 class="text-lg font-medium">Адреса</h3>
-              <p>м. Київ, вул. Хрещатик, 10</p>
+              <p>вул. Горіхова, 123</p>
+              <p>м. Київ, 01001</p>
               <p class="text-sm text-gray-600 mt-1">Графік роботи: Пн-Пт: 9:00-20:00, Сб-Нд: 10:00-18:00</p>
             </div>
           </div>
@@ -28,8 +29,7 @@
             </span>
             <div>
               <h3 class="text-lg font-medium">Телефон</h3>
-              <p>+380 44 123 45 67</p>
-              <p>+380 50 987 65 43</p>
+              <p>0 800 123 456</p>
             </div>
           </div>
           
@@ -42,8 +42,7 @@
             </span>
             <div>
               <h3 class="text-lg font-medium">Email</h3>
-              <p>info@nutsshop.ua</p>
-              <p>support@nutsshop.ua</p>
+              <p>info@nutsshop.com</p>
             </div>
           </div>
           

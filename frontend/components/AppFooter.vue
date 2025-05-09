@@ -50,10 +50,12 @@
         <div>
           <h3 class="text-lg font-semibold mb-4">Категорії</h3>
           <ul class="space-y-2">
-            <li><NuxtLink to="/catalog?category=nuts" class="text-gray-400 hover:text-amber-500">Горіхи</NuxtLink></li>
-            <li><NuxtLink to="/catalog?category=dried-fruits" class="text-gray-400 hover:text-amber-500">Сухофрукти</NuxtLink></li>
-            <li><NuxtLink to="/catalog?category=seeds" class="text-gray-400 hover:text-amber-500">Насіння</NuxtLink></li>
-            <li><NuxtLink to="/catalog?category=sweets" class="text-gray-400 hover:text-amber-500">Корисні солодощі</NuxtLink></li>
+            <li v-if="isLoading" class="text-gray-400">Завантаження...</li>
+            <li v-for="category in categories" :key="category.category_id">
+              <NuxtLink :to="`/catalog?category_id=${category.category_id}`" class="text-gray-400 hover:text-amber-500">
+                {{ category.name }}
+              </NuxtLink>
+            </li>
           </ul>
         </div>
 
@@ -99,4 +101,51 @@
       </div>
     </div>
   </footer>
-</template> 
+</template>
+
+<script setup lang="ts">
+import { ref, onMounted } from 'vue';
+import { useConfig } from '~/composables/useConfig';
+
+// Інтерфейс для категорії
+interface Category {
+  category_id: number;
+  name: string;
+  url_key: string;
+  is_active: boolean;
+  parent_id?: number;
+  position: number;
+  image?: string;
+}
+
+// Змінні стану
+const categories = ref<Category[]>([]);
+const isLoading = ref(true);
+
+// Отримуємо базовий URL API
+const { apiBaseUrl } = useConfig();
+
+// Функція для завантаження категорій
+const fetchCategories = async () => {
+  try {
+    isLoading.value = true;
+    const response = await fetch(`${apiBaseUrl}/categories`);
+    
+    if (!response.ok) {
+      throw new Error('Не вдалося завантажити категорії');
+    }
+    
+    const data = await response.json();
+    categories.value = data;
+  } catch (error) {
+    console.error('Помилка при завантаженні категорій у футері:', error);
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+// Завантажуємо категорії при створенні компонента
+onMounted(() => {
+  fetchCategories();
+});
+</script> 

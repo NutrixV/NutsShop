@@ -20,9 +20,17 @@ class ProductController extends Controller
         
         // Фільтрувати за категорією, якщо задано
         if ($request->has('category_id')) {
-            $query->whereHas('categories', function ($q) use ($request) {
-                $q->where('catalog_category.category_id', $request->input('category_id'));
-            });
+            $categoryIds = $request->input('category_id');
+            // Перевіряємо, чи це масив категорій або одиночне значення
+            if (is_array($categoryIds)) {
+                $query->whereHas('categories', function ($q) use ($categoryIds) {
+                    $q->whereIn('catalog_category.category_id', $categoryIds);
+                });
+            } else {
+                $query->whereHas('categories', function ($q) use ($categoryIds) {
+                    $q->where('catalog_category.category_id', $categoryIds);
+                });
+            }
         }
         
         // Виключити конкретний продукт з результатів
@@ -63,14 +71,26 @@ class ProductController extends Controller
         
         // Фільтрація за типом горіхів (nut_type)
         if ($request->has('attr_nut_type')) {
-            $nutTypes = explode(',', $request->input('attr_nut_type'));
-            $query->whereIn('nut_type', $nutTypes);
+            $nutTypes = $request->input('attr_nut_type');
+            // Перевіряємо, чи це масив або строкове значення з роздільниками
+            if (is_array($nutTypes)) {
+                $query->whereIn('nut_type', $nutTypes);
+            } else {
+                $nutTypes = explode(',', $nutTypes);
+                $query->whereIn('nut_type', $nutTypes);
+            }
         }
         
         // Фільтрація за країною походження (origin_country)
         if ($request->has('attr_origin_country')) {
-            $countries = explode(',', $request->input('attr_origin_country'));
-            $query->whereIn('origin_country', $countries);
+            $countries = $request->input('attr_origin_country');
+            // Перевіряємо, чи це масив або строкове значення з роздільниками
+            if (is_array($countries)) {
+                $query->whereIn('origin_country', $countries);
+            } else {
+                $countries = explode(',', $countries);
+                $query->whereIn('origin_country', $countries);
+            }
         }
         
         // Фільтрація за відсотком какао (cocoa_pct)
@@ -93,8 +113,14 @@ class ProductController extends Controller
         
         // Фільтрація за рівнем солодкості (sweetness_level)
         if ($request->has('attr_sweetness_level')) {
-            $levels = explode(',', $request->input('attr_sweetness_level'));
-            $query->whereIn('sweetness_level', $levels);
+            $levels = $request->input('attr_sweetness_level');
+            // Перевіряємо, чи це масив або строкове значення з роздільниками
+            if (is_array($levels)) {
+                $query->whereIn('sweetness_level', $levels);
+            } else {
+                $levels = explode(',', $levels);
+                $query->whereIn('sweetness_level', $levels);
+            }
         }
         
         // Фільтрація за булевими атрибутами (salted, roasted, gluten_free, organic)
@@ -152,9 +178,17 @@ class ProductController extends Controller
         
         // Застосовуємо ті ж фільтри, що і при отриманні продуктів
         if ($request->has('category_id')) {
-            $query->whereHas('categories', function ($q) use ($request) {
-                $q->where('catalog_category.category_id', $request->input('category_id'));
-            });
+            $categoryIds = $request->input('category_id');
+            // Перевіряємо, чи це масив категорій або одиночне значення
+            if (is_array($categoryIds)) {
+                $query->whereHas('categories', function ($q) use ($categoryIds) {
+                    $q->whereIn('catalog_category.category_id', $categoryIds);
+                });
+            } else {
+                $query->whereHas('categories', function ($q) use ($categoryIds) {
+                    $q->where('catalog_category.category_id', $categoryIds);
+                });
+            }
         }
         
         if ($request->has('search')) {

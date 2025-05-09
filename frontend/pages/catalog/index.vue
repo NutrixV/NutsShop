@@ -1,14 +1,14 @@
 <template>
   <div class="bg-gray-50 py-8 md:py-12">
     <div class="container mx-auto px-4">
-      <div class="flex justify-between items-center mb-8">
+      <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-8 gap-4">
         <h1 class="text-2xl md:text-3xl font-bold text-gray-900">Каталог товарів</h1>
-        <div class="flex items-center space-x-2">
-          <span class="text-sm text-gray-500">Сортування:</span>
-          <select v-model="sortOption" class="px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
+        <div class="flex items-center space-x-2 self-start">
+          <span class="text-sm text-gray-500 whitespace-nowrap">Сортування:</span>
+          <select v-model="sortOption" class="flex-grow sm:flex-grow-0 px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
             <option value="name">За назвою</option>
-            <option value="price_asc">Ціна: від низької до високої</option>
-            <option value="price_desc">Ціна: від високої до низької</option>
+            <option value="price_asc">Ціна: від низької</option>
+            <option value="price_desc">Ціна: від високої</option>
             <option value="created_at">Спочатку нові</option>
           </select>
         </div>
@@ -60,12 +60,12 @@
           <div class="border-b pb-4">
             <button 
               @click="toggleFilter('categories')" 
-              class="w-full flex justify-between items-center font-semibold text-lg mb-3 text-gray-900"
+              class="w-full flex justify-between items-center font-semibold text-lg mb-3 text-gray-900 text-left"
             >
               <span>Категорії</span>
               <svg 
                 xmlns="http://www.w3.org/2000/svg" 
-                class="h-5 w-5 transition-transform" 
+                class="h-5 w-5 transition-transform flex-shrink-0" 
                 :class="{ 'transform rotate-180': expandedFilters.categories }"
                 fill="none" 
                 viewBox="0 0 24 24" 
@@ -101,12 +101,12 @@
           <div class="border-b pb-4">
             <button 
               @click="toggleFilter('price')" 
-              class="w-full flex justify-between items-center font-semibold text-lg mb-3 text-gray-900"
+              class="w-full flex justify-between items-center font-semibold text-lg mb-3 text-gray-900 text-left"
             >
               <span>Ціна, грн</span>
               <svg 
                 xmlns="http://www.w3.org/2000/svg" 
-                class="h-5 w-5 transition-transform" 
+                class="h-5 w-5 transition-transform flex-shrink-0" 
                 :class="{ 'transform rotate-180': expandedFilters.price }"
                 fill="none" 
                 viewBox="0 0 24 24" 
@@ -143,12 +143,12 @@
           <div v-if="hasDiscountFilter" class="border-b pb-4">
             <button 
               @click="toggleFilter('discount')" 
-              class="w-full flex justify-between items-center font-semibold text-lg mb-3 text-gray-900"
+              class="w-full flex justify-between items-center font-semibold text-lg mb-3 text-gray-900 text-left"
             >
               <span>Знижки</span>
               <svg 
                 xmlns="http://www.w3.org/2000/svg" 
-                class="h-5 w-5 transition-transform" 
+                class="h-5 w-5 transition-transform flex-shrink-0" 
                 :class="{ 'transform rotate-180': expandedFilters.discount }"
                 fill="none" 
                 viewBox="0 0 24 24" 
@@ -177,12 +177,12 @@
             <div class="border-b pb-4" v-if="group.length > 0">
               <button 
                 @click="toggleFilter(groupName)" 
-                class="w-full flex justify-between items-center font-semibold text-lg mb-3 text-gray-900"
+                class="w-full flex justify-between items-center font-semibold text-lg mb-3 text-gray-900 text-left"
               >
                 <span>{{ getGroupDisplayName(groupName) }}</span>
                 <svg 
                   xmlns="http://www.w3.org/2000/svg" 
-                  class="h-5 w-5 transition-transform" 
+                  class="h-5 w-5 transition-transform flex-shrink-0" 
                   :class="{ 'transform rotate-180': expandedFilters[groupName] }"
                   fill="none" 
                   viewBox="0 0 24 24" 
@@ -256,10 +256,23 @@
           <!-- Інформація про кількість товарів та поточні фільтри -->
           <div class="bg-white mb-6 p-4 rounded-lg shadow-sm flex flex-wrap justify-between items-center gap-4">
             <p class="text-gray-700">
-              Знайдено <span class="font-semibold">{{ filteredProducts.length }}</span> товарів
+              Знайдено <span class="font-semibold">{{ pagination?.total || 0 }}</span> товарів
             </p>
             <!-- Активні фільтри/теги -->
             <div v-if="hasActiveFilters" class="flex flex-wrap gap-2">
+              <!-- Пошуковий запит -->
+              <div 
+                v-if="searchQuery" 
+                class="bg-gray-100 px-3 py-1 rounded-full text-sm text-gray-800 flex items-center"
+              >
+                Пошук: {{ searchQuery }}
+                <button @click="clearSearch" class="ml-1 text-gray-500 hover:text-gray-700">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              
               <div 
                 v-for="(category, index) in selectedCategoryNames" 
                 :key="`cat-${index}`"
@@ -499,6 +512,8 @@ const sortOption = ref('name');
 const loading = ref(false);
 const currentPage = ref(1);
 const pagination = ref<ApiPagination | null>(null);
+const searchQuery = ref<string>(''); // Змінна для зберігання пошукового запиту
+const searchInput = ref<string>(''); // Додаємо нову змінну для поля введення
 const expandedFilters = ref<ExpandedFilters>({
   categories: true, // Стартуємо з відкритою категорією для кращого UX
   price: false,
@@ -526,6 +541,9 @@ const hasActiveFilters = computed(() => {
   
   // Перевіряємо, чи вибрана опція "тільки зі знижкою"
   if (discountOnly.value) return true;
+  
+  // Перевіряємо, чи є пошуковий запит
+  if (searchQuery.value) return true;
   
   // Перевіряємо, чи вибрані будь-які атрибути фільтрації
   for (const key in selectedAttributes.value) {
@@ -634,125 +652,190 @@ const goToPage = (page: number) => {
 };
 
 const updateQueryParams = () => {
-  const params: Record<string, string | string[]> = {};
+  // Використовуємо URLSearchParams для формування URL
+  const searchParams = new URLSearchParams();
   
   // Категорії
-  if (selectedCategories.value.length > 0) {
-    if (selectedCategories.value.length === 1) {
-      params.category_id = selectedCategories.value[0].toString();
-    } else {
-      params.category_id = selectedCategories.value.map(c => c.toString()) as string[];
-    }
-  }
+  selectedCategories.value.forEach(categoryId => {
+    searchParams.append("category_id[]", categoryId.toString());
+  });
   
-  // Ціновий діапазон (тільки якщо фільтр був явно застосований)
+  // Ціновий діапазон
   if (isPriceFilterApplied.value) {
     if (priceFrom.value !== null) {
-      params.price_from = priceFrom.value.toString();
+      searchParams.append("price_from", priceFrom.value.toString());
     }
     
     if (priceTo.value !== null) {
-      params.price_to = priceTo.value.toString();
+      searchParams.append("price_to", priceTo.value.toString());
     }
   }
   
   // Опція "тільки зі знижкою"
   if (discountOnly.value) {
-    params.discount = '1';
+    searchParams.append("discount", "1");
   }
   
-  // Сортування (якщо відрізняється від значення за замовчуванням)
+  // Сортування
   if (sortOption.value !== 'name') {
-    params.sort = sortOption.value;
+    searchParams.append("sort", sortOption.value);
   }
   
-  // Поточна сторінка (тільки якщо не перша)
+  // Поточна сторінка
   if (currentPage.value > 1) {
-    params.page = currentPage.value.toString();
+    searchParams.append("page", currentPage.value.toString());
+  }
+  
+  // Пошуковий запит
+  if (searchQuery.value) {
+    searchParams.append("search", searchQuery.value);
   }
   
   // Атрибути
-  for (const [key, values] of Object.entries(selectedAttributes.value)) {
+  Object.entries(selectedAttributes.value).forEach(([code, values]) => {
     if (values.length > 0) {
-      // Перетворюємо кожне значення на рядок для сумісності з типом параметрів URL
-      params[`attr_${key}`] = values.map(val => val.toString());
+      values.forEach(value => {
+        searchParams.append(`attr_${code}[]`, value.toString());
+      });
     }
-  }
+  });
   
   // Діапазони атрибутів
-  for (const [key, [min, max]] of Object.entries(rangeAttributes.value)) {
+  Object.entries(rangeAttributes.value).forEach(([code, [min, max]]) => {
     if (min !== null) {
-      params[`${key}_from`] = min.toString();
+      searchParams.append(`${code}_from`, min.toString());
     }
     
     if (max !== null) {
-      params[`${key}_to`] = max.toString();
+      searchParams.append(`${code}_to`, max.toString());
     }
-  }
+  });
   
-  // Оновлюємо URL без перезавантаження сторінки
-  router.push({ query: params }, { replace: true });
+  // Оновлюємо URL без перезавантаження сторінки, використовуючи query-string
+  const queryString = searchParams.toString();
+  const path = router.currentRoute.value.path;
+  
+  // Використовуємо replaceState для збереження правильного формату URL
+  if (queryString) {
+    window.history.replaceState({}, '', `${path}?${queryString}`);
+  } else {
+    window.history.replaceState({}, '', path);
+  }
 };
 
 const loadFiltersFromQuery = () => {
-  // Завантажуємо категорії
-  if (route.query.category_id) {
-    const categoryIds = Array.isArray(route.query.category_id) 
-      ? route.query.category_id.map((id: string) => parseInt(id)) 
-      : [parseInt(route.query.category_id as string)];
-    
+  // Функція для отримання параметрів з URLSearchParams
+  const searchParams = new URLSearchParams(window.location.search);
+  
+  // Очищаємо поточні фільтри
+  selectedCategories.value = [];
+  priceFrom.value = null;
+  priceTo.value = null;
+  isPriceFilterApplied.value = false;
+  discountOnly.value = false;
+  currentPage.value = 1;
+  
+  // Очищаємо всі атрибути
+  for (const key in selectedAttributes.value) {
+    selectedAttributes.value[key] = [];
+  }
+  
+  // Очищаємо всі діапазони
+  for (const key in rangeAttributes.value) {
+    rangeAttributes.value[key] = [null, null];
+  }
+  
+  // Завантажуємо категорії - обробляємо два формати: 'category_id[]' та 'category_id'
+  const categoryIds: number[] = [];
+  
+  // Формат 'category_id[]' (масив)
+  searchParams.getAll('category_id[]').forEach(id => {
+    categoryIds.push(parseInt(id));
+  });
+  
+  // Формат 'category_id' (одиночне значення)
+  const singleCategoryId = searchParams.get('category_id');
+  if (singleCategoryId) {
+    categoryIds.push(parseInt(singleCategoryId));
+  }
+  
+  if (categoryIds.length > 0) {
     selectedCategories.value = categoryIds;
   }
   
   // Завантажуємо ціновий діапазон
-  if (route.query.price_from) {
-    priceFrom.value = parseInt(route.query.price_from as string);
-    isPriceFilterApplied.value = true; // Якщо є price_from в URL, це явно застосований фільтр
+  const priceFromParam = searchParams.get('price_from');
+  if (priceFromParam) {
+    priceFrom.value = parseInt(priceFromParam);
+    isPriceFilterApplied.value = true;
   }
   
-  if (route.query.price_to) {
-    priceTo.value = parseInt(route.query.price_to as string);
-    isPriceFilterApplied.value = true; // Якщо є price_to в URL, це явно застосований фільтр
+  const priceToParam = searchParams.get('price_to');
+  if (priceToParam) {
+    priceTo.value = parseInt(priceToParam);
+    isPriceFilterApplied.value = true;
   }
   
   // Завантажуємо параметр "тільки зі знижкою"
-  if (route.query.discount) {
-    discountOnly.value = route.query.discount === '1';
+  if (searchParams.get('discount') === '1') {
+    discountOnly.value = true;
   }
   
   // Завантажуємо сортування
-  if (route.query.sort) {
-    sortOption.value = route.query.sort as string;
+  const sortParam = searchParams.get('sort');
+  if (sortParam) {
+    sortOption.value = sortParam;
   }
   
   // Завантажуємо поточну сторінку
-  if (route.query.page) {
-    currentPage.value = parseInt(route.query.page as string);
+  const pageParam = searchParams.get('page');
+  if (pageParam) {
+    currentPage.value = parseInt(pageParam);
   }
   
-  // Завантажуємо атрибути
-  Object.keys(route.query).forEach(key => {
-    // Обробка атрибутів (checkbox)
-    if (key.startsWith('attr_')) {
-      const attrCode = key.replace('attr_', '');
-      const values = Array.isArray(route.query[key]) 
-        ? route.query[key] as string[]
-        : [route.query[key] as string];
-      
-      selectedAttributes.value[attrCode] = values;
+  // Завантажуємо пошуковий запит
+  const search = searchParams.get('search');
+  if (search) {
+    searchQuery.value = search;
+  } else {
+    searchQuery.value = '';
+  }
+  
+  // Створюємо мапу атрибутів з URL
+  const attrMap = new Map();
+  searchParams.forEach((value, key) => {
+    // Обробка атрибутів у форматі attr_name[]
+    if (key.startsWith('attr_') && key.endsWith('[]')) {
+      const attrCode = key.slice(5, -2); // Видаляємо 'attr_' та '[]'
+      if (!attrMap.has(attrCode)) {
+        attrMap.set(attrCode, []);
+      }
+      attrMap.get(attrCode).push(value);
     }
-    // Обробка діапазонів (окрім ціни)
-    else if ((key.endsWith('_from') || key.endsWith('_to')) && !key.startsWith('price_')) {
-      const attrCode = key.replace('_from', '').replace('_to', '');
-      
+    
+    // Обробка діапазонів
+    const fromMatch = key.match(/(.+)_from$/);
+    if (fromMatch && fromMatch[1] !== 'price') {
+      const attrCode = fromMatch[1];
       if (!rangeAttributes.value[attrCode]) {
         rangeAttributes.value[attrCode] = [null, null];
       }
-      
-      const index = key.endsWith('_from') ? 0 : 1;
-      const value = route.query[key] as string;
-      rangeAttributes.value[attrCode][index] = value ? parseInt(value) : null;
+      rangeAttributes.value[attrCode][0] = parseInt(value);
     }
+    
+    const toMatch = key.match(/(.+)_to$/);
+    if (toMatch && toMatch[1] !== 'price') {
+      const attrCode = toMatch[1];
+      if (!rangeAttributes.value[attrCode]) {
+        rangeAttributes.value[attrCode] = [null, null];
+      }
+      rangeAttributes.value[attrCode][1] = parseInt(value);
+    }
+  });
+  
+  // Оновлюємо вибрані атрибути
+  attrMap.forEach((values, attrCode) => {
+    selectedAttributes.value[attrCode] = values;
   });
 };
 
@@ -778,11 +861,17 @@ const fetchProducts = async () => {
   
   try {
     // Формуємо URL з параметрами
-    let url = `${apiBaseUrl}/products?page=${currentPage.value}`;
+    let url = new URL(`${apiBaseUrl}/products`);
+    let params = new URLSearchParams();
     
-    // Додаємо категорії
+    // Додаємо поточну сторінку
+    params.append("page", currentPage.value.toString());
+    
+    // Додаємо категорії (можуть бути множинні)
     if (selectedCategories.value.length > 0) {
-      url += `&category_id=${selectedCategories.value[0]}`; // API приймає тільки одну категорію
+      selectedCategories.value.forEach(categoryId => {
+        params.append("category_id[]", categoryId.toString());
+      });
     }
     
     // Додаємо сортування
@@ -797,43 +886,53 @@ const fetchProducts = async () => {
         sort = 'price';
       }
       
-      url += `&sort=${sort}&direction=${direction}`;
+      params.append("sort", sort);
+      params.append("direction", direction);
     }
     
     // Додаємо ціновий діапазон
     if (priceFrom.value !== null) {
-      url += `&price_from=${priceFrom.value}`;
+      params.append("price_from", priceFrom.value.toString());
     }
     
     if (priceTo.value !== null) {
-      url += `&price_to=${priceTo.value}`;
+      params.append("price_to", priceTo.value.toString());
     }
     
     // Додаємо фільтр по знижках
     if (discountOnly.value) {
-      url += `&discount=1`;
+      params.append("discount", "1");
     }
     
     // Додаємо атрибути
     Object.entries(selectedAttributes.value).forEach(([code, values]) => {
       if (values.length > 0) {
-        // Форматуємо параметр як потрібно для вашого API
-        url += `&attr_${code}=${values.join(',')}`;
+        values.forEach(value => {
+          params.append(`attr_${code}[]`, value.toString());
+        });
       }
     });
     
     // Додаємо діапазони атрибутів
     Object.entries(rangeAttributes.value).forEach(([code, [min, max]]) => {
       if (min !== null) {
-        url += `&${code}_from=${min}`;
+        params.append(`${code}_from`, min.toString());
       }
       if (max !== null) {
-        url += `&${code}_to=${max}`;
+        params.append(`${code}_to`, max.toString());
       }
     });
     
+    // Додаємо пошуковий запит, якщо є
+    if (searchQuery.value) {
+      params.append('search', searchQuery.value);
+    }
+    
+    // Створюємо повний URL з параметрами
+    url.search = params.toString();
+    
     // Виконуємо запит
-    const response = await fetch(url);
+    const response = await fetch(url.toString());
     if (!response.ok) throw new Error('Не вдалося завантажити продукти');
     
     const data = await response.json();
@@ -863,35 +962,37 @@ const fetchProducts = async () => {
 // Отримати фільтри з API
 const fetchFilters = async () => {
   try {
-    // Формуємо URL з тими ж параметрами, що й для продуктів
-    let url = `${apiBaseUrl}/product-filters`;
+    // Формуємо URL з параметрами
+    let url = new URL(`${apiBaseUrl}/product-filters`);
+    let params = new URLSearchParams();
     
-    // Додаємо всі активні фільтри до запиту, щоб отримати актуальний стан фільтрів
-    const params = new URLSearchParams();
-    
-    // Додаємо категорії
+    // Додаємо категорії (можуть бути множинні)
     if (selectedCategories.value.length > 0) {
-      params.append('category_id', selectedCategories.value[0].toString());
+      selectedCategories.value.forEach(categoryId => {
+        params.append("category_id[]", categoryId.toString());
+      });
     }
     
     // Додаємо ціновий діапазон
     if (priceFrom.value !== null) {
-      params.append('price_from', priceFrom.value.toString());
+      params.append("price_from", priceFrom.value.toString());
     }
     
     if (priceTo.value !== null) {
-      params.append('price_to', priceTo.value.toString());
+      params.append("price_to", priceTo.value.toString());
     }
     
     // Додаємо фільтр по знижках
     if (discountOnly.value) {
-      params.append('discount', '1');
+      params.append("discount", "1");
     }
     
     // Додаємо атрибути
     Object.entries(selectedAttributes.value).forEach(([code, values]) => {
       if (values.length > 0) {
-        params.append(`attr_${code}`, values.join(','));
+        values.forEach(value => {
+          params.append(`attr_${code}[]`, value.toString());
+        });
       }
     });
     
@@ -906,17 +1007,14 @@ const fetchFilters = async () => {
     });
     
     // Додаємо пошуковий запит, якщо є
-    if (route.query.search) {
-      params.append('search', route.query.search as string);
+    if (searchQuery.value) {
+      params.append('search', searchQuery.value);
     }
     
-    // Формуємо URL з параметрами
-    const queryString = params.toString();
-    if (queryString) {
-      url += `?${queryString}`;
-    }
+    // Створюємо повний URL з параметрами
+    url.search = params.toString();
     
-    const response = await fetch(url);
+    const response = await fetch(url.toString());
     if (!response.ok) throw new Error('Не вдалося завантажити фільтри');
     
     const data = await response.json();
@@ -941,9 +1039,36 @@ watch([sortOption], () => {
   fetchProducts();
 });
 
+// Слідкуємо за змінами URL-параметрів (для пошуку через хедер)
+watch(() => route.query, (newQuery: Record<string, any>, oldQuery: Record<string, any>) => {
+  // Якщо URL змінився
+  if (JSON.stringify(newQuery) !== JSON.stringify(oldQuery)) {
+    // Перезавантажуємо фільтри та параметри з URL
+    loadFiltersFromQuery();
+    
+    // Якщо змінився пошуковий запит в URL
+    const searchParam = newQuery?.search as string | undefined;
+    if (searchParam !== undefined) {
+      searchQuery.value = searchParam;
+      searchInput.value = searchQuery.value; // Оновлюємо також поле введення
+    } else {
+      // Якщо параметр search відсутній, очищаємо пошуковий запит
+      searchQuery.value = '';
+      searchInput.value = '';
+    }
+    
+    // Оновлюємо сторінку і завантажуємо продукти
+    fetchProducts();
+  }
+}, { deep: true });
+
 // Ініціалізація
 onMounted(() => {
   loadFiltersFromQuery();
+  
+  // Встановлюємо значення searchInput при завантаженні сторінки на основі URL
+  searchInput.value = searchQuery.value;
+  
   fetchCategories();
   fetchProducts();
   
@@ -1214,5 +1339,20 @@ const getGroupDisplayName = (groupName: string): string => {
   };
   
   return groupDisplayNames[groupName] || groupName;
+};
+
+// Метод для очищення пошукового запиту
+const clearSearch = () => {
+  searchQuery.value = '';
+  updateQueryParams();
+  fetchProducts();
+};
+
+// Додаємо обробник пошуку
+const submitSearch = () => {
+  searchQuery.value = searchInput.value;
+  currentPage.value = 1;
+  updateQueryParams();
+  fetchProducts();
 };
 </script> 
