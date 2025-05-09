@@ -96,7 +96,7 @@
                           <td class="px-3 py-4 whitespace-nowrap">
                             <div class="flex items-center">
                               <div class="h-10 w-10 flex-shrink-0">
-                                <img :src="item.image || '/images/placeholder.png'" :alt="item.product_name" class="h-10 w-10 rounded-md object-cover">
+                                <img :src="item.image" :alt="item.product_name" class="h-10 w-10 rounded-md object-cover">
                               </div>
                               <div class="ml-4">
                                 <div class="text-sm font-medium text-gray-900">{{ item.product_name }}</div>
@@ -145,7 +145,8 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
+import { useApi } from '~/composables/useApi';
 
 interface OrderItem {
   id: string;
@@ -167,6 +168,7 @@ interface Order {
 }
 
 const router = useRouter();
+const route = useRoute();
 const loading = ref(true);
 const orders = ref<Order[]>([]);
 const expandedOrder = ref<string | null>(null);
@@ -216,71 +218,70 @@ onMounted(() => {
     return;
   }
 
-  // Імітація завантаження даних
-  setTimeout(() => {
-    // В майбутньому тут буде запит до API для отримання замовлень користувача
-    // Поки що використовуємо тестові дані
-    orders.value = [
-      {
-        id: '12345',
-        status: 'completed',
-        created_at: '2023-06-15T14:30:00Z',
-        total: 1250.00,
-        subtotal: 1200.00,
-        shipping_cost: 50.00,
-        items_count: 3,
-        items: [
-          {
-            id: '1',
-            product_name: 'Фісташки смажені солоні',
-            image: '/images/products/pistachios.jpg',
-            price: 320.00,
-            quantity: 2
-          },
-          {
-            id: '2',
-            product_name: 'Мигдаль сирий',
-            image: '/images/products/almonds.jpg',
-            price: 280.00,
-            quantity: 1
-          },
-          {
-            id: '3',
-            product_name: 'Суміш горіхів преміум',
-            image: '/images/products/mix.jpg',
-            price: 280.00,
-            quantity: 1
-          }
-        ]
-      },
-      {
-        id: '12346',
-        status: 'processing',
-        created_at: '2023-07-20T10:15:00Z',
-        total: 750.50,
-        subtotal: 720.50,
-        shipping_cost: 30.00,
-        items_count: 2,
-        items: [
-          {
-            id: '4',
-            product_name: 'Кеш\'ю сирий',
-            image: '/images/products/cashew.jpg',
-            price: 425.50,
-            quantity: 1
-          },
-          {
-            id: '5',
-            product_name: 'Волоські горіхи',
-            image: '/images/products/walnuts.jpg',
-            price: 295.00,
-            quantity: 1
-          }
-        ]
-      }
-    ];
-    
-    loading.value = false;
-  }, 1000);
+  // Завантаження замовлень користувача з API
+  loadUserOrders();
+  
+  // Перевіряємо, чи є параметр order в URL (перехід з кабінету користувача за "Детальніше")
+  if (route.query.order) {
+    expandedOrder.value = route.query.order as string;
+  }
 });
+
+// Функція для завантаження замовлень користувача
+const loadUserOrders = async () => {
+  loading.value = true;
+  
+  try {
+    const { get } = useApi();
+    const result = await get('/api/orders');
+    
+    if (result.success && result.data.success) {
+      // Тимчасовий масив для зберігання замовлень перед завантаженням додаткової інформації
+      const tempOrders = result.data.data.map((order: any) => ({
+        id: order.increment_id,
+        status: order.status,
+        created_at: order.created_at,
+        total: order.grand_total,
+        subtotal: order.subtotal,
+        shipping_cost: 0, // У даній версії додатку доставка безкоштовна
+        items_count: order.items?.length || 0,
+        items: order.items?.map((item: any) => ({
+          id: item.item_id,
+          product_id: item.product_id,
+          product_name: item.name,
+          image: '/images/products/placeholder-product.jpg', // Плейсхолдер за замовчуванням
+          price: item.price,
+          quantity: item.qty_ordered
+        })) || []
+      }));
+
+      // Для кожного замовлення завантажуємо інформацію про продукти
+      for (const order of tempOrders) {
+        for (const item of order.items) {
+          // Отримуємо інформацію про продукт за ID
+          try {
+            const productResponse = await get(`/api/products/${item.product_id}`);
+            if (productResponse.success && productResponse.data) {
+              // Оновлюємо зображення, якщо є
+              if (productResponse.data.image) {
+                item.image = `http://localhost:8090/storage/${productResponse.data.image}`;
+              }
+            }
+          } catch (error) {
+            console.error(`Помилка при завантаженні деталей продукту ${item.product_id}:`, error);
+          }
+        }
+      }
+
+      // Встановлюємо замовлення з оновленими зображеннями
+      orders.value = tempOrders;
+    } else {
+      console.error('Помилка при завантаженні замовлень:', result.data.message);
+    }
+  } catch (error) {
+    console.error('Помилка при завантаженні замовлень:', error);
+  } finally {
+    loading.value = false;
+  }
+};
 </script> 

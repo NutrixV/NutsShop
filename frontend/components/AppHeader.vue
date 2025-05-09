@@ -13,7 +13,7 @@
           </button>
         </div>
         <NuxtLink to="/" class="flex items-center">
-          <img src="/images/logo.svg" alt="NutsShop" class="h-8">
+          <img src="/images/logo.svg" alt="NutsShop" class="h-20">
           <span class="ml-2 text-xl font-bold text-amber-600">NutsShop</span>
         </NuxtLink>
         <div class="flex items-center">
@@ -75,7 +75,7 @@
         <div class="flex justify-between items-center py-3 border-b">
           <div class="flex items-center">
             <NuxtLink to="/" class="flex items-center">
-              <img src="/images/logo.svg" alt="NutsShop" class="h-10">
+              <img src="/images/logo.svg" alt="NutsShop" class="h-20">
               <span class="ml-2 text-2xl font-bold text-amber-600">NutsShop</span>
             </NuxtLink>
           </div>

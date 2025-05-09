@@ -5,14 +5,14 @@
       <div class="container mx-auto px-4 py-12 md:py-24">
         <div class="flex flex-col md:flex-row items-center">
           <div class="w-full md:w-1/2 mb-8 md:mb-0 text-center md:text-left">
-            <h1 class="text-3xl md:text-5xl font-bold text-gray-900 mb-4">Натуральні горіхи та сухофрукти</h1>
-            <p class="text-lg text-gray-600 mb-8">Найкращі продукти для вашого здоров'я та гарного самопочуття за найкращими цінами</p>
+            <h1 class="text-3xl md:text-5xl font-bold text-gray-900 mb-4">Вишукані солодощі та преміальні горіхи</h1>
+            <p class="text-lg text-gray-600 mb-8">Неперевершений смак та задоволення у кожному шматочку. Відкрийте для себе світ натуральних ласощів!</p>
             <NuxtLink to="/catalog" class="inline-block bg-amber-600 hover:bg-amber-700 text-white py-3 px-8 rounded-full font-medium text-lg transition-colors duration-300">
               Перейти до каталогу
             </NuxtLink>
           </div>
           <div class="w-full md:w-1/2">
-            <img src="/images/hero-nuts.png" alt="Асортимент горіхів" class="rounded-lg shadow-lg w-full h-auto max-w-lg mx-auto">
+            <img src="/images/macarons-2897881_640.jpg" alt="Асортимент горіхів та солодощів" class="rounded-lg shadow-lg w-full h-auto max-w-lg mx-auto">
           </div>
         </div>
       </div>

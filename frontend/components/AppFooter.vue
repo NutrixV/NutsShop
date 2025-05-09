@@ -6,7 +6,7 @@
         <!-- Колонка з інформацією про магазин -->
         <div>
           <div class="flex items-center mb-4">
-            <img src="/images/logo-white.svg" alt="NutsShop" class="h-8">
+            <img src="/images/logo.svg" alt="NutsShop" class="h-20">
             <span class="ml-2 text-xl font-bold text-amber-500">NutsShop</span>
           </div>
           <p class="text-gray-400 mb-4">

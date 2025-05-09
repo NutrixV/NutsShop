@@ -78,6 +78,9 @@ class CustomerController extends Controller
             'password_hash' => Hash::make($request->password),
         ]);
 
+        // Зберігаємо клієнта в сесії після реєстрації
+        $request->session()->put('customer', $customer);
+
         return response()->json([
             'success' => true,
             'message' => 'Customer registered successfully',
@@ -119,6 +122,9 @@ class CustomerController extends Controller
             ], 401);
         }
 
+        // Зберігаємо клієнта в сесії
+        $request->session()->put('customer', $customer);
+
         return response()->json([
             'success' => true,
             'message' => 'Login successful',
@@ -130,6 +136,37 @@ class CustomerController extends Controller
                     'last_name' => $customer->last_name,
                 ],
                 'remember_me' => $request->remember_me ?? false
+            ]
+        ]);
+    }
+
+    /**
+     * Get authenticated customer profile
+     */
+    public function profile(Request $request)
+    {
+        $customer = $request->session()->get('customer');
+        
+        if (!$customer) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Користувач не авторизований'
+            ], 401);
+        }
+        
+        // Оновлюємо дані з бази, щоб отримати найсвіжіші дані
+        $customer = CustomerEntity::with('addresses')->find($customer->entity_id);
+        
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'customer' => [
+                    'id' => $customer->entity_id,
+                    'email' => $customer->email,
+                    'first_name' => $customer->first_name,
+                    'last_name' => $customer->last_name,
+                    'addresses' => $customer->addresses
+                ]
             ]
         ]);
     }

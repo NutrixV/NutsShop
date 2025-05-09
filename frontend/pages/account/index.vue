@@ -63,9 +63,12 @@
                   Сума: {{ formatPrice(order.total) }} грн
                 </div>
                 <div class="mt-2">
-                  <button class="text-amber-600 hover:text-amber-800 text-sm font-medium">
+                  <NuxtLink 
+                    :to="`/account/orders?order=${order.id}`" 
+                    class="text-amber-600 hover:text-amber-800 text-sm font-medium"
+                  >
                     Детальніше
-                  </button>
+                  </NuxtLink>
                 </div>
               </div>
             </div>
@@ -86,6 +89,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { useApi } from '~/composables/useApi';
 
 interface Customer {
   first_name: string;
@@ -98,6 +102,7 @@ interface Order {
   status: 'pending' | 'processing' | 'completed' | 'cancelled';
   created_at: string;
   total: number;
+  items_count: number;
 }
 
 const router = useRouter();
@@ -150,21 +155,30 @@ onMounted(() => {
     }
   }
 
-  // В майбутньому тут буде запит до API для отримання замовлень користувача
-  // Поки що використовуємо тестові дані
-  orders.value = [
-    {
-      id: '12345',
-      status: 'completed',
-      created_at: '2023-06-15T14:30:00Z',
-      total: 1250.00
-    },
-    {
-      id: '12346',
-      status: 'processing',
-      created_at: '2023-07-20T10:15:00Z',
-      total: 750.50
-    }
-  ];
+  // Завантаження замовлень користувача з API
+  loadUserOrders();
 });
+
+// Функція для завантаження замовлень користувача
+const loadUserOrders = async () => {
+  try {
+    const { get } = useApi();
+    const result = await get('/api/orders');
+    
+    if (result.success && result.data.success) {
+      // Перетворюємо дані з API в формат, який очікує компонент
+      orders.value = result.data.data.map((order: any) => ({
+        id: order.increment_id,
+        status: order.status,
+        created_at: order.created_at,
+        total: order.grand_total,
+        items_count: order.items?.length || 0
+      }));
+    } else {
+      console.error('Помилка при завантаженні замовлень:', result.data.message);
+    }
+  } catch (error) {
+    console.error('Помилка при завантаженні замовлень:', error);
+  }
+};
 </script> 
