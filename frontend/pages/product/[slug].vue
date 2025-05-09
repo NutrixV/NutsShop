@@ -233,9 +233,13 @@ import { ref, watch } from 'vue';
 import { computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useConfig } from '~/composables/useConfig';
+import { useCart } from '~/composables/useCart';
 
 // Отримуємо базовий URL API з конфігурації
 const { apiBaseUrl } = useConfig();
+
+// Отримуємо функції для роботи з кошиком
+const { addToCart: addItemToCart } = useCart();
 
 // Формуємо базову URL для зображень (без /api/)
 const baseUrl = apiBaseUrl.replace('/api', '');
@@ -341,13 +345,16 @@ const formatDate = (dateString: string): string => {
   });
 };
 
-const addToCart = () => {
-  // Тут буде логіка додавання в кошик
-  console.log('Додаємо в кошик:', {
-    productId: product.value?.id,
-    variantId: selectedVariant.value,
-    quantity: quantity.value
-  });
+const addToCart = async () => {
+  if (!product.value || !product.value.id) return;
+  
+  const result = await addItemToCart(product.value.id, quantity.value);
+  
+  if (result) {
+    // Товар успішно додано, кошик відкриється автоматично
+  } else {
+    // Помилка при додаванні товару (обробка помилки відбувається в useCart)
+  }
 };
 
 // Функція налаштування продукту з даних API

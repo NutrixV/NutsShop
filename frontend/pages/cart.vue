@@ -3,8 +3,14 @@
     <div class="container mx-auto px-4">
       <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-6">Кошик</h1>
       
+      <!-- Індикатор завантаження -->
+      <div v-if="loading" class="text-center py-12">
+        <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-amber-600"></div>
+        <p class="mt-4 text-gray-600">Завантаження кошика...</p>
+      </div>
+      
       <!-- Пустий кошик -->
-      <div v-if="!cartItems.length" class="bg-white rounded-lg shadow-sm p-8 text-center">
+      <div v-else-if="!items.length" class="bg-white rounded-lg shadow-sm p-8 text-center">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-400 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
         </svg>
@@ -16,28 +22,26 @@
       </div>
       
       <!-- Кошик з товарами -->
-      <div v-else>
-        <div class="flex flex-col lg:flex-row gap-8">
-          <!-- Список товарів у кошику -->
-          <div class="lg:w-2/3">
-            <div class="bg-white rounded-lg shadow-sm overflow-hidden mb-4">
-              <!-- Заголовки таблиці (приховані на мобільних) -->
-              <div class="hidden md:flex bg-gray-50 text-gray-600 text-sm font-medium p-4">
-                <div class="w-8"></div>
-                <div class="w-20"></div>
-                <div class="flex-1">Товар</div>
-                <div class="w-32 text-center">Ціна</div>
-                <div class="w-28 text-center">Кількість</div>
-                <div class="w-32 text-center">Всього</div>
-                <div class="w-8"></div>
-              </div>
-              
-              <!-- Товари -->
-              <div v-for="(item, index) in cartItems" :key="item.id" class="border-t first:border-t-0">
+      <div v-else class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="lg:col-span-2">
+          <div class="bg-white rounded-lg shadow-sm">
+            <!-- Заголовок кошика на десктопі -->
+            <div class="hidden md:flex py-4 px-6 border-b text-sm text-gray-600 font-medium">
+              <div class="w-8"></div>
+              <div class="flex-1 min-w-[200px]">Товар</div>
+              <div class="w-32 text-center">Ціна</div>
+              <div class="w-28 text-center">Кількість</div>
+              <div class="w-32 text-center">Всього</div>
+              <div class="w-8"></div>
+            </div>
+            
+            <!-- Список товарів -->
+            <div>
+              <div v-for="item in items" :key="item.item_id" class="border-t first:border-t-0">
                 <div class="p-4 flex flex-wrap md:flex-nowrap items-center">
                   <!-- Кнопка видалення (на мобільних вгорі) -->
                   <button 
-                    @click="removeFromCart(item.id)" 
+                    @click="handleRemoveItem(item.item_id)" 
                     class="md:hidden absolute top-4 right-4 text-gray-400 hover:text-red-500"
                     aria-label="Видалити товар"
                   >
@@ -46,14 +50,8 @@
                     </svg>
                   </button>
                   
-                  <!-- Чекбокс для товару -->
+                  <!-- Чекбокс для товару (замінено на відступ) -->
                   <div class="w-8 flex items-center justify-center">
-                    <input 
-                      type="checkbox" 
-                      :id="`item-${item.id}`"
-                      v-model="item.selected"
-                      class="rounded text-amber-600 focus:ring-amber-500 h-4 w-4"
-                    >
                   </div>
                   
                   <!-- Зображення -->
@@ -71,7 +69,7 @@
                   <div class="flex-1 min-w-[200px] mb-4 md:mb-0">
                     <h3 class="text-gray-900 font-medium">{{ item.name }}</h3>
                     <div class="text-sm text-gray-500 mt-1">
-                      <span v-if="item.variant">{{ item.variant }}</span>
+                      <span>{{ item.sku }}</span>
                     </div>
                   </div>
                   
@@ -88,14 +86,14 @@
                       <button 
                         @click="decreaseQuantity(item)" 
                         class="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 focus:outline-none"
-                        :disabled="item.quantity <= 1"
+                        :disabled="item.qty <= 1"
                       >-</button>
                       <input 
                         type="number" 
-                        v-model="item.quantity" 
+                        v-model="item.qty" 
                         min="1" 
                         class="w-12 px-2 py-1 text-center focus:outline-none border-x border-gray-300"
-                        @change="updateCartItem(item)"
+                        @change="handleUpdateItem(item)"
                       >
                       <button 
                         @click="increaseQuantity(item)" 
@@ -107,13 +105,13 @@
                   <!-- Загальна сума -->
                   <div class="w-full md:w-32 flex justify-between md:justify-center font-medium mb-4 md:mb-0">
                     <span class="md:hidden text-gray-500">Всього:</span>
-                    <span class="text-gray-900">{{ formatPrice(item.price * item.quantity) }} грн</span>
+                    <span class="text-gray-900">{{ formatPrice(item.row_total) }} грн</span>
                   </div>
                   
                   <!-- Кнопка видалення (на десктопі) -->
                   <div class="hidden md:block w-8 text-center">
                     <button 
-                      @click="removeFromCart(item.id)" 
+                      @click="handleRemoveItem(item.item_id)" 
                       class="text-gray-400 hover:text-red-500"
                       aria-label="Видалити товар"
                     >
@@ -127,7 +125,7 @@
             </div>
             
             <!-- Дії з кошиком -->
-            <div class="flex flex-wrap md:flex-nowrap justify-between gap-4 mb-6">
+            <div class="flex flex-wrap md:flex-nowrap justify-between gap-4 p-6 border-t">
               <NuxtLink 
                 to="/catalog" 
                 class="inline-flex items-center text-amber-600 hover:text-amber-800 font-medium transition-colors duration-300"
@@ -140,13 +138,13 @@
               
               <div class="flex gap-3">
                 <button 
-                  @click="clearCart" 
+                  @click="handleClearCart" 
                   class="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors duration-300"
                 >
                   Очистити кошик
                 </button>
                 <button 
-                  @click="updateCart" 
+                  @click="loadCart" 
                   class="px-4 py-2 bg-amber-600 text-white rounded-md hover:bg-amber-700 transition-colors duration-300"
                 >
                   Оновити кошик
@@ -156,8 +154,8 @@
           </div>
           
           <!-- Підсумок замовлення -->
-          <div class="lg:w-1/3">
-            <div class="bg-white rounded-lg shadow-sm p-6">
+          <div class="lg:w-full">
+            <div class="bg-white rounded-lg shadow-sm p-6 mt-8 lg:mt-0">
               <h2 class="text-xl font-semibold text-gray-900 mb-4">Підсумок замовлення</h2>
               
               <div class="space-y-4 mb-6">
@@ -211,127 +209,60 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import { computed, onMounted } from 'vue';
-
-// Інтерфейси
-interface CartItem {
-  id: number;
-  name: string;
-  slug: string;
-  price: number;
-  image?: string;
-  quantity: number;
-  variant?: string;
-  selected: boolean;
-}
+import { ref, computed, onMounted } from 'vue';
+import { useCart } from '~/composables/useCart';
 
 // Стан компонента
-const cartItems = ref<CartItem[]>([]);
 const promoCode = ref('');
 const promoDiscount = ref(0);
-const loading = ref(false);
 
-// Підрахунок суми
-const subtotal = computed(() => {
-  return cartItems.value
-    .filter(item => item.selected)
-    .reduce((sum, item) => sum + (item.price * item.quantity), 0);
-});
+// Отримуємо дані та методи кошика з composable
+const { 
+  items, 
+  loading, 
+  subtotal, 
+  grandTotal, 
+  formatPrice, 
+  loadCart, 
+  updateCartItem, 
+  removeCartItem, 
+  clearCart 
+} = useCart();
 
-const discount = computed(() => {
-  return promoDiscount.value;
-});
+// Підрахунок знижки та загальної суми
+const discount = computed(() => promoDiscount.value);
 
 const total = computed(() => {
   return subtotal.value - discount.value;
 });
 
-// Методи
-const formatPrice = (price: number): string => {
-  return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+// Методи управління елементами кошика
+const increaseQuantity = async (item: any) => {
+  item.qty++;
+  await handleUpdateItem(item);
 };
 
-const loadCart = () => {
-  // В реальному проекті тут буде завантаження даних з API або localStorage
-  // Для прикладу, використовуємо тестові дані
-  cartItems.value = [
-    {
-      id: 1,
-      name: 'Мигдаль обсмажений',
-      slug: 'mygdal-obsmazhenyy',
-      price: 250,
-      image: '/images/products/almonds.jpg',
-      quantity: 2,
-      variant: '500 г',
-      selected: true
-    },
-    {
-      id: 2,
-      name: 'Фісташки солоні',
-      slug: 'fistashky-soloni',
-      price: 320,
-      image: '/images/products/pistachios.jpg',
-      quantity: 1,
-      variant: '250 г',
-      selected: true
-    },
-    {
-      id: 3,
-      name: 'Кеш\'ю сирий',
-      slug: 'keshyu-syryy',
-      price: 280,
-      image: '/images/products/cashew.jpg',
-      quantity: 1,
-      variant: '250 г',
-      selected: true
-    }
-  ];
-};
-
-const increaseQuantity = (item: CartItem) => {
-  item.quantity++;
-  updateCartItem(item);
-};
-
-const decreaseQuantity = (item: CartItem) => {
-  if (item.quantity > 1) {
-    item.quantity--;
-    updateCartItem(item);
+const decreaseQuantity = async (item: any) => {
+  if (item.qty > 1) {
+    item.qty--;
+    await handleUpdateItem(item);
   }
 };
 
-const updateCartItem = (item: CartItem) => {
-  // В реальному проекті тут буде оновлення через API або localStorage
-  console.log('Оновлено товар:', item);
+const handleUpdateItem = async (item: any) => {
+  await updateCartItem(item.item_id, item.qty);
 };
 
-const removeFromCart = (itemId: number) => {
+const handleRemoveItem = async (itemId: number) => {
   if (confirm('Ви впевнені, що хочете видалити цей товар з кошика?')) {
-    cartItems.value = cartItems.value.filter(item => item.id !== itemId);
-    // В реальному проекті тут буде видалення через API або localStorage
-    console.log('Видалено товар з ID:', itemId);
+    await removeCartItem(itemId);
   }
 };
 
-const clearCart = () => {
+const handleClearCart = async () => {
   if (confirm('Ви впевнені, що хочете очистити кошик?')) {
-    cartItems.value = [];
-    // В реальному проекті тут буде очищення через API або localStorage
-    console.log('Кошик очищено');
+    await clearCart();
   }
-};
-
-const updateCart = () => {
-  loading.value = true;
-  
-  // Імітація запиту до сервера
-  setTimeout(() => {
-    // В реальному проекті тут буде оновлення через API
-    console.log('Кошик оновлено');
-    loading.value = false;
-    alert('Кошик успішно оновлено');
-  }, 500);
 };
 
 const applyPromoCode = () => {
@@ -340,39 +271,22 @@ const applyPromoCode = () => {
     return;
   }
   
-  loading.value = true;
-  
-  // Імітація запиту до сервера
-  setTimeout(() => {
-    // В реальному проекті тут буде перевірка промокоду через API
-    if (promoCode.value.toUpperCase() === 'NUTS20') {
-      promoDiscount.value = Math.round(subtotal.value * 0.2);
-      alert('Промокод успішно застосовано! Знижка 20%');
-    } else {
-      promoDiscount.value = 0;
-      alert('Недійсний промокод');
-    }
-    loading.value = false;
-  }, 500);
+  // Імітація перевірки промокоду
+  if (promoCode.value.toUpperCase() === 'NUTS20') {
+    promoDiscount.value = Math.round(subtotal.value * 0.2);
+    alert('Промокод успішно застосовано! Знижка 20%');
+  } else {
+    promoDiscount.value = 0;
+    alert('Недійсний промокод');
+  }
 };
 
 const checkout = () => {
-  if (cartItems.value.length === 0) {
-    alert('Ваш кошик порожній');
-    return;
-  }
-  
-  if (cartItems.value.filter(item => item.selected).length === 0) {
-    alert('Будь ласка, виберіть товари для замовлення');
-    return;
-  }
-  
-  // В реальному проекті тут буде перехід на сторінку оформлення замовлення
-  console.log('Перехід до оформлення замовлення');
-  // Використовуйте router.push або window.location для переходу на сторінку оформлення замовлення
+  // Перенаправлення на сторінку оформлення замовлення
+  window.location.href = '/checkout';
 };
 
-// Ініціалізація
+// При монтуванні компонента оновлюємо кошик
 onMounted(() => {
   loadCart();
 });
@@ -380,10 +294,9 @@ onMounted(() => {
 
 <style scoped>
 .product-image-container {
-  position: relative;
-  width: 80px;
-  height: 80px;
+  width: 100%;
+  aspect-ratio: 1/1;
   overflow: hidden;
-  border-radius: 0.25rem;
+  border-radius: 0.375rem;
 }
 </style> 

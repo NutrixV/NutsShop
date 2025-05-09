@@ -236,6 +236,19 @@ class CartController extends Controller
         
         $items = [];
         foreach ($cart->items as $item) {
+            // Отримуємо зображення товару якщо воно є
+            $productImage = null;
+            
+            // Якщо є зображення в продукті, використовуємо його
+            if ($item->product && $item->product->image) {
+                // Повна URL до зображення, включаючи базовий шлях
+                $productImage = url('/storage/' . $item->product->image);
+            } 
+            // Якщо немає, пробуємо використати стандартне зображення
+            else if ($item->product) {
+                $productImage = url('/images/placeholder-product.jpg');
+            }
+            
             $items[] = [
                 'item_id' => $item->item_id,
                 'product_id' => $item->product_id,
@@ -249,6 +262,7 @@ class CartController extends Controller
                     'name' => $item->product->name,
                     'sku' => $item->product->sku,
                     'price' => $item->product->price,
+                    'image' => $productImage
                 ]
             ];
         }

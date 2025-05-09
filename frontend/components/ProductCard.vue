@@ -80,6 +80,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useCart } from '../composables/useCart';
 
 interface Product {
   id: number;
@@ -107,16 +108,18 @@ const formatPrice = (price: number): string => {
 const addToCart = async () => {
   loading.value = true;
   try {
-    // Тут буде код для додавання товару до кошика через API 
-    // або за допомогою локального сховища
-    console.log('Додано до кошика:', props.product.id);
+    // Використовуємо composable useCart для додавання товару
+    const { addToCart: addItemToCart } = useCart();
     
-    // Імітація запиту
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // Викликаємо метод додавання
+    const success = await addItemToCart(props.product.id, 1);
     
-    // Тут можна викликати глобальну подію або мутацію стану
+    if (success) {
+      // Додано успішно, візуальний фідбек можна додати тут
+      // Наприклад, короткочасна анімація чи ефект
+    }
   } catch (error) {
-    console.error('Помилка при додаванні до кошика:', error);
+    // Обробка помилок при додаванні до кошика
   } finally {
     loading.value = false;
   }
