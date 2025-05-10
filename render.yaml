@@ -46,7 +46,7 @@ services:
   - type: web
     name: nutsshop-frontend
     env: docker
-    dockerfilePath: ./frontend/Dockerfile
+    dockerfilePath: ./frontend/Dockerfile.alt
     dockerContext: ./frontend
     envVars:
       - key: NODE_ENV
@@ -57,6 +57,8 @@ services:
         value: 0.0.0.0
       - key: PORT
         value: 3000
+      - key: NUXT_SKIP_TS_CHECK
+        value: "true"
 
 # PostgreSQL database
 databases:
