@@ -29,7 +29,7 @@ class CartController extends Controller
     }
 
     /**
-     * Отримує кошик користувача або створює новий.
+     * Відображає поточний кошик.
      *
      * @param Request $request
      * @return JsonResponse
@@ -39,27 +39,63 @@ class CartController extends Controller
         // Отримуємо ID кошика з cookie
         $cartId = $request->cookie('cart_id');
         $cart = null;
+        $created = false;
         
         // Якщо немає ID кошика або кошик не існує, створюємо новий
-        if (!$cartId || !($cart = Quote::where('entity_id', $cartId)->where('is_active', true)->first())) {
+        if (!$cartId || !($cart = Quote::with('items.product')->where('entity_id', $cartId)->where('is_active', true)->first())) {
             // Створюємо новий кошик
             $cart = new Quote();
             $cart->is_active = true;
+            $cart->items_count = 0;
+            $cart->subtotal = 0;
+            $cart->grand_total = 0;
+            $cart->currency = 'USD';
             $cart->save();
             
             // Зберігаємо ID у змінній для подальшого використання
             $cartId = $cart->entity_id;
-            
-            // Створюємо відповідь з cookie
-            return response()->json($this->formatCartResponse($cart))
-                ->cookie('cart_id', $cartId, 60 * 24 * 30); // 30 днів
+            $created = true;
         }
         
-        // Отримуємо існуючий кошик з усіма зв'язаними товарами
-        $cart->load('items.product');
+        // Створюємо відповідь з cookie, який не змінюється
+        $response = response()->json($this->formatCartResponse($cart));
         
-        // Повертаємо відповідь без зміни cookie
-        return response()->json($this->formatCartResponse($cart));
+        // Якщо кошик був створений, додаємо cookie
+        if ($created) {
+            // Встановлюємо cookie з правильними параметрами для різних середовищ
+            $cookieParams = [
+                'name' => 'cart_id',
+                'value' => $cartId,
+                'minutes' => 60 * 24 * 30, // 30 днів
+                'path' => '/',
+                'domain' => null,
+                'secure' => true,
+                'httpOnly' => true,
+                'sameSite' => 'lax'
+            ];
+            
+            // Для Render.com додаємо спеціальні параметри
+            if (env('APP_ENV') === 'production' && strpos(env('APP_URL', ''), 'render.com') !== false) {
+                // На Render використовуємо специфічні налаштування для кросдоменних cookie
+                $cookieParams['sameSite'] = 'none';
+                // Обов'язково secure для SameSite=None
+                $cookieParams['secure'] = true;
+            }
+            
+            $response->cookie(
+                $cookieParams['name'],
+                $cookieParams['value'],
+                $cookieParams['minutes'],
+                $cookieParams['path'],
+                $cookieParams['domain'],
+                $cookieParams['secure'],
+                $cookieParams['httpOnly'],
+                false, // raw
+                $cookieParams['sameSite']
+            );
+        }
+        
+        return $response;
     }
 
     /**
@@ -141,8 +177,41 @@ class CartController extends Controller
         $cart = Quote::with('items.product')->findOrFail($cart->entity_id);
         
         // Створюємо відповідь з cookie, який не змінюється
-        return response()->json($this->formatCartResponse($cart))
-            ->cookie('cart_id', $cartId, 60 * 24 * 30); // 30 днів
+        $response = response()->json($this->formatCartResponse($cart));
+        
+        // Встановлюємо cookie з правильними параметрами для різних середовищ
+        $cookieParams = [
+            'name' => 'cart_id',
+            'value' => $cartId,
+            'minutes' => 60 * 24 * 30, // 30 днів
+            'path' => '/',
+            'domain' => null,
+            'secure' => true,
+            'httpOnly' => true,
+            'sameSite' => 'lax'
+        ];
+        
+        // Для Render.com додаємо спеціальні параметри
+        if (env('APP_ENV') === 'production' && strpos(env('APP_URL', ''), 'render.com') !== false) {
+            // На Render використовуємо специфічні налаштування для кросдоменних cookie
+            $cookieParams['sameSite'] = 'none';
+            // Обов'язково secure для SameSite=None
+            $cookieParams['secure'] = true;
+        }
+        
+        $response->cookie(
+            $cookieParams['name'],
+            $cookieParams['value'],
+            $cookieParams['minutes'],
+            $cookieParams['path'],
+            $cookieParams['domain'],
+            $cookieParams['secure'],
+            $cookieParams['httpOnly'],
+            false, // raw
+            $cookieParams['sameSite']
+        );
+        
+        return $response;
     }
 
     /**
@@ -283,9 +352,10 @@ class CartController extends Controller
             ];
         }
         
+        // Використовуємо збережене в базі значення items_count, а не кількість айтемів
         return [
             'entity_id' => $cart->entity_id,
-            'items_count' => count($items),
+            'items_count' => $cart->items_count,
             'items' => $items,
             'subtotal' => $cart->subtotal,
             'grand_total' => $cart->grand_total,
