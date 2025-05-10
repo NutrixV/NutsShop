@@ -35,12 +35,12 @@ services:
         fromDatabase:
           name: nutsshop-db
           property: password
-      - key: APP_KEY
-        generateValue: true
       - key: APP_URL
         value: https://nutsshop-api.onrender.com
       - key: FRONTEND_URL
         value: https://nutsshop-frontend.onrender.com
+      - key: APP_KEY
+        value: "base64:wUWpDUjMCeVt47X24ylKV57JRNkKCR52kwogyoqTxFQ="
       - key: PORT
         value: 8080
 
