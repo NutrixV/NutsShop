@@ -62,9 +62,6 @@ Route::get('/image/{path}', function ($path) {
     
     $response = Response::make($file, 200);
     $response->header('Content-Type', $type);
-    $response->header('Access-Control-Allow-Origin', '*');
-    $response->header('Access-Control-Allow-Methods', 'GET, OPTIONS');
-    $response->header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
     
     return $response;
 })->where('path', '.*'); 
