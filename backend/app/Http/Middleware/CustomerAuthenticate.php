@@ -37,8 +37,8 @@ class CustomerAuthenticate
             }
             
             // 3. Перевірка заголовка x-api-token
-            if (!$token && $request->header('x-api-token')) {
-                $token = $request->header('x-api-token');
+            if (!$token && $request->header('X-API-Token')) {
+                $token = $request->header('X-API-Token');
             }
             
             if (!$token) {
