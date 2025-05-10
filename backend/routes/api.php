@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\ProductController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\HealthController;
 
 /*
 |--------------------------------------------------------------------------
@@ -55,6 +56,9 @@ Route::delete('/cart/items/{id}', [CartController::class, 'removeItem']);
 
 // Order routes (available for all users)
 Route::post('/orders', [OrderController::class, 'store']);
+
+// Health check endpoint for Render.com
+Route::get('/health', [\App\Http\Controllers\HealthController::class, 'check']);
 
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {

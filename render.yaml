@@ -1,0 +1,75 @@
+services:
+  # Backend API (Laravel)
+  - type: web
+    name: nutsshop-api
+    env: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        fromDatabase:
+          name: nutsshop-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: nutsshop-db
+          property: port
+      - key: DB_DATABASE
+        fromDatabase:
+          name: nutsshop-db
+          property: database
+      - key: DB_USERNAME
+        fromDatabase:
+          name: nutsshop-db
+          property: username
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: nutsshop-db
+          property: password
+      - key: APP_KEY
+        generateValue: true
+      - key: APP_URL
+        fromService:
+          type: web
+          name: nutsshop-api
+          property: url
+      - key: FRONTEND_URL
+        fromService:
+          type: web
+          name: nutsshop-frontend
+          property: url
+
+  # Frontend (Nuxt.js)
+  - type: web
+    name: nutsshop-frontend
+    env: docker
+    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: ./frontend
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NUXT_PUBLIC_API_URL
+        fromService:
+          type: web
+          name: nutsshop-api
+          property: url
+          append: /api
+      - key: HOST
+        value: 0.0.0.0
+      - key: PORT
+        value: 3000
+
+# PostgreSQL database
+databases:
+  - name: nutsshop-db
+    plan: basic-1gb
+    ipAllowList: [] 
