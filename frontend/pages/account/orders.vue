@@ -235,7 +235,7 @@ const loadUserOrders = async () => {
   
   try {
     const { get } = useApi();
-    const result = await get('/api/orders');
+    const result = await get('/orders');
     
     if (result.success && result.data.success) {
       // Тимчасовий масив для зберігання замовлень перед завантаженням додаткової інформації

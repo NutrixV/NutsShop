@@ -383,7 +383,7 @@ const processCheckout = async () => {
   try {
     const { post } = useApi();
     
-    const response = await post('/api/orders', {
+    const response = await post('/orders', {
       first_name: form.value.firstName,
       last_name: form.value.lastName,
       email: form.value.email,

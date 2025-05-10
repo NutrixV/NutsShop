@@ -163,7 +163,7 @@ onMounted(() => {
 const loadUserOrders = async () => {
   try {
     const { get } = useApi();
-    const result = await get('/api/orders');
+    const result = await get('/orders');
     
     if (result.success && result.data.success) {
       // Перетворюємо дані з API в формат, який очікує компонент
