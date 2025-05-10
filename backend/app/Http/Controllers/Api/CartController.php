@@ -38,22 +38,27 @@ class CartController extends Controller
     {
         // Отримуємо ID кошика з cookie
         $cartId = $request->cookie('cart_id');
+        $cart = null;
         
         // Якщо немає ID кошика або кошик не існує, створюємо новий
-        if (!$cartId || !Quote::where('entity_id', $cartId)->where('is_active', true)->exists()) {
+        if (!$cartId || !($cart = Quote::where('entity_id', $cartId)->where('is_active', true)->first())) {
             // Створюємо новий кошик
             $cart = new Quote();
             $cart->is_active = true;
             $cart->save();
             
-            // Зберігаємо ID кошика в cookie
+            // Зберігаємо ID у змінній для подальшого використання
+            $cartId = $cart->entity_id;
+            
+            // Створюємо відповідь з cookie
             return response()->json($this->formatCartResponse($cart))
-                ->cookie('cart_id', $cart->entity_id, 60 * 24 * 30); // 30 днів
+                ->cookie('cart_id', $cartId, 60 * 24 * 30); // 30 днів
         }
         
-        // Отримуємо існуючий кошик
-        $cart = Quote::with('items.product')->findOrFail($cartId);
+        // Отримуємо існуючий кошик з усіма зв'язаними товарами
+        $cart->load('items.product');
         
+        // Повертаємо відповідь без зміни cookie
         return response()->json($this->formatCartResponse($cart));
     }
 
@@ -88,17 +93,20 @@ class CartController extends Controller
         
         // Отримуємо ID кошика з cookie
         $cartId = $request->cookie('cart_id');
+        $cart = null;
         
         // Якщо немає ID кошика або кошик не існує, створюємо новий
-        if (!$cartId || !Quote::where('entity_id', $cartId)->where('is_active', true)->exists()) {
+        if (!$cartId || !($cart = Quote::where('entity_id', $cartId)->where('is_active', true)->first())) {
             // Створюємо новий кошик
             $cart = new Quote();
             $cart->is_active = true;
             $cart->save();
-        } else {
-            // Отримуємо існуючий кошик
-            $cart = Quote::findOrFail($cartId);
+            
+            // Зберігаємо ID у змінній для подальшого використання
+            $cartId = $cart->entity_id;
         }
+        
+        // Відтепер ми завжди маємо або існуючий кошик, або новий кошик
         
         // Отримуємо дані товару
         $product = CatalogProduct::findOrFail($request->input('product_id'));
@@ -129,8 +137,12 @@ class CartController extends Controller
         // Оновлюємо суми кошика
         $this->updateCartTotals($cart);
         
+        // Оновлюємо кошик для відправки свіжих даних
+        $cart = Quote::with('items.product')->findOrFail($cart->entity_id);
+        
+        // Створюємо відповідь з cookie, який не змінюється
         return response()->json($this->formatCartResponse($cart))
-            ->cookie('cart_id', $cart->entity_id, 60 * 24 * 30); // 30 днів
+            ->cookie('cart_id', $cartId, 60 * 24 * 30); // 30 днів
     }
 
     /**
@@ -214,12 +226,16 @@ class CartController extends Controller
         $items = QuoteItem::where('quote_id', $cart->entity_id)->get();
         
         $subtotal = 0;
+        $itemsCount = 0;
+        
         foreach ($items as $item) {
             $subtotal += $item->row_total;
+            $itemsCount += $item->qty;
         }
         
         $cart->subtotal = $subtotal;
         $cart->grand_total = $subtotal; // Наразі без податків і знижок
+        $cart->items_count = $itemsCount; // Оновлюємо кількість товарів у кошику
         $cart->save();
     }
     
