@@ -53,8 +53,8 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
-      - key: NUXT_PUBLIC_API_URL
-        value: https://nutsshop-api.onrender.com/api
+      - key: NUXT_PUBLIC_API_BASE_URL
+        value: https://nutsshop-api.onrender.com
       - key: HOST
         value: 0.0.0.0
       - key: PORT

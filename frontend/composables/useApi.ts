@@ -1,15 +1,15 @@
 import { useRuntimeConfig } from '#app';
+import { useConfig } from '~/composables/useConfig';
 
 export function useApi() {
-  const config = useRuntimeConfig();
-  const apiBaseUrl = config.public.apiBaseUrl;
+  const { apiBaseUrl } = useConfig();
 
   /**
    * Отримання CSRF токену для захищених запитів
    */
   async function getCsrfToken() {
     try {
-      const response = await fetch(`${apiBaseUrl}/api/csrf-token`, {
+      const response = await fetch(`${apiBaseUrl}/csrf-token`, {
         method: 'GET',
         headers: {
           'Accept': 'application/json'

@@ -147,6 +147,7 @@
 import { ref, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useApi } from '~/composables/useApi';
+import { useConfig } from '~/composables/useConfig';
 
 interface OrderItem {
   id: string;
@@ -172,6 +173,7 @@ const route = useRoute();
 const loading = ref(true);
 const orders = ref<Order[]>([]);
 const expandedOrder = ref<string | null>(null);
+const { apiBaseUrl } = useConfig();
 
 // Форматування ціни
 const formatPrice = (price: number): string => {
@@ -264,7 +266,7 @@ const loadUserOrders = async () => {
             if (productResponse.success && productResponse.data) {
               // Оновлюємо зображення, якщо є
               if (productResponse.data.image) {
-                item.image = `http://localhost:8090/storage/${productResponse.data.image}`;
+                item.image = `${apiBaseUrl}/storage/${productResponse.data.image}`;
               }
             }
           } catch (error) {
@@ -284,4 +286,4 @@ const loadUserOrders = async () => {
     loading.value = false;
   }
 };
-</script> 
+</script>

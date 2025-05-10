@@ -13,6 +13,11 @@ RUN npm ci
 # Копіюємо решту файлів проекту
 COPY . .
 
+# Виправлення для estree-walker - додаємо exports в package.json
+RUN if [ -d "node_modules/estree-walker" ]; then \
+    echo '{"type":"module","exports":{"import":"./src/index.js","require":"./dist/estree-walker.umd.js"}}' > node_modules/estree-walker/package.json; \
+    fi
+
 # Змінна оточення для пропуску TypeScript перевірки
 ENV NUXT_SKIP_TS_CHECK=true
 ENV NITRO_PRESET=node-server

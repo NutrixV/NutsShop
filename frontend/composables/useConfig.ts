@@ -1,5 +1,9 @@
+import { useRuntimeConfig } from '#app';
+
 export function useConfig() {
+  const runtimeConfig = useRuntimeConfig();
+  
   return {
-    apiBaseUrl: 'http://localhost:8090/api'
+    apiBaseUrl: runtimeConfig.public.apiBaseUrl ? `${runtimeConfig.public.apiBaseUrl}/api` : 'http://localhost:8090/api'
   };
 } 

@@ -574,13 +574,14 @@ const filteredProducts = computed(() => {
 // Мапимо продукт до формату, який очікує компонент
 const mapProductForComponent = (product: ApiProduct): ProductForComponent => {
   // Тут можуть бути додаткові перетворення даних, розрахунки знижок і т.д.
+  const { apiBaseUrl } = useConfig();
   return {
     id: product.entity_id,
     name: product.name,
     slug: product.sku.toLowerCase().replace(/\s+/g, '-'),
     description: product.short_description || product.description,
     price: Number(product.price),
-    image: product.image && `http://localhost:8090/storage/${product.image}`,
+    image: product.image && `${apiBaseUrl}/storage/${product.image}`,
     // Додаткові поля можуть бути додані при необхідності
   };
 };
