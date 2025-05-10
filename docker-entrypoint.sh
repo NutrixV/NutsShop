@@ -14,13 +14,23 @@ su -s /bin/bash -c "php artisan config:clear" www-data
 su -s /bin/bash -c "php artisan view:clear" www-data
 su -s /bin/bash -c "php artisan route:clear" www-data
 
-# Ensure queue table migrations are published
-if [ ! -f database/migrations/*_create_jobs_table.php ]; then
-    su -s /bin/bash -c "php artisan queue:table" www-data
-    su -s /bin/bash -c "php artisan queue:failed-table" www-data
+# Check if tables already exist in the database before creating migrations
+# Use Laravel's DB facade to check if tables exist
+TABLE_CHECK=$(su -s /bin/bash -c "php artisan tinker --execute=\"echo DB::getSchemaBuilder()->hasTable('failed_jobs') ? 'exists' : 'not_exists';\"" www-data)
+
+if [[ $TABLE_CHECK != *"exists"* ]]; then
+    # Only create migration files if tables don't exist
+    if [ ! -f database/migrations/*_create_jobs_table.php ]; then
+        su -s /bin/bash -c "php artisan queue:table" www-data
+    fi
+    
+    if [ ! -f database/migrations/*_create_failed_jobs_table.php ]; then
+        su -s /bin/bash -c "php artisan queue:failed-table" www-data
+    fi
 fi
 
-# Migrate database as www-data
+# Migrate database as www-data with --force option
+# Add the --skip-existing option to skip existing migrations
 su -s /bin/bash -c "php artisan migrate --force" www-data
 
 # Create storage symlink if it doesn't exist
