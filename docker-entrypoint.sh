@@ -9,6 +9,12 @@ php artisan config:clear
 php artisan view:clear
 php artisan route:clear
 
+# Ensure queue table migrations are published
+if [ ! -f database/migrations/*_create_jobs_table.php ]; then
+    php artisan queue:table
+    php artisan queue:failed-table
+fi
+
 # Migrate database
 php artisan migrate --force
 

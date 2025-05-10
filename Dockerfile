@@ -72,6 +72,8 @@ RUN if [ ! -f .env ]; then \
 
 # Generate app key if needed
 RUN php artisan key:generate --force
+
+# Note: Migrations will be run in the entrypoint script to ensure database connection is available
 USER root
 
 # Expose port 8080
