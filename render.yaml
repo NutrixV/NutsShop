@@ -46,7 +46,7 @@ services:
   - type: web
     name: nutsshop-frontend
     env: docker
-    dockerfilePath: ./frontend/Dockerfile.alt
+    dockerfilePath: ./frontend/Dockerfile
     dockerContext: ./frontend
     envVars:
       - key: NODE_ENV

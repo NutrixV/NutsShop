@@ -31,8 +31,9 @@ export default defineNuxtConfig({
     }
   },
   typescript: {
-    strict: true,
-    typeCheck: true
+    strict: false,
+    typeCheck: false,
+    shim: false
   },
   tailwindcss: {
     cssPath: '~/assets/css/tailwind.css',

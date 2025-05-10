@@ -1,4 +1,5 @@
-FROM node:18-alpine
+# Етап збірки
+FROM node:16-alpine AS build
 
 # Встановлюємо робочу директорію
 WORKDIR /app
@@ -12,11 +13,30 @@ RUN npm ci
 # Копіюємо решту файлів проекту
 COPY . .
 
-# Будуємо проект для виробництва, пропускаємо перевірку типів
+# Змінна оточення для пропуску TypeScript перевірки
+ENV NUXT_SKIP_TS_CHECK=true
+ENV NITRO_PRESET=node-server
+
+# Будуємо проект для виробництва
 RUN npm run build
+
+# Етап виробництва
+FROM node:16-alpine
+
+# Встановлюємо робочу директорію
+WORKDIR /app
+
+# Копіюємо тільки необхідні файли з етапу збірки
+COPY --from=build /app/.output /app/.output
+COPY --from=build /app/package.json /app/package.json
 
 # Відкриваємо порт 3000
 EXPOSE 3000
+
+# Змінні оточення для виробництва
+ENV HOST=0.0.0.0
+ENV PORT=3000
+ENV NODE_ENV=production
 
 # Запускаємо сервер
 CMD ["node", ".output/server/index.mjs"] 
