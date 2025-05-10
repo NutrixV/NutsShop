@@ -9,6 +9,23 @@ chown -R www-data:www-data /var/www/html
 chmod -R 755 /var/www/html/backend/storage
 chmod -R 775 /var/www/html/backend/bootstrap/cache
 
+# Генеруємо новий ключ шифрування, якщо він відсутній або має неправильний формат
+if [ -z "$APP_KEY" ] || [[ ! "$APP_KEY" =~ ^base64:.{44}$ ]]; then
+    echo "Generating new encryption key..."
+    # Створюємо тимчасовий файл .env, якщо його немає
+    if [ ! -f .env ]; then
+        echo "APP_NAME=NutsShop" > .env
+        echo "APP_ENV=production" >> .env
+        echo "APP_DEBUG=false" >> .env
+    fi
+    su -s /bin/bash -c "php artisan key:generate --force" www-data
+    # Зчитуємо згенерований ключ з .env
+    NEW_APP_KEY=$(grep APP_KEY .env | cut -d '=' -f2)
+    # Експортуємо його як змінну середовища
+    export APP_KEY=$NEW_APP_KEY
+    echo "Generated new APP_KEY: $APP_KEY"
+fi
+
 # Run cache commands as www-data
 su -s /bin/bash -c "php artisan cache:clear" www-data || true
 su -s /bin/bash -c "php artisan config:clear" www-data
