@@ -73,6 +73,9 @@ RUN if [ ! -f .env ]; then \
 # Generate app key if needed
 RUN php artisan key:generate --force
 
+# Create storage symlink for public access to uploaded files
+RUN php artisan storage:link
+
 # Note: Migrations will be run in the entrypoint script to ensure database connection is available
 USER root
 

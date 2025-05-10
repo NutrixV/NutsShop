@@ -19,11 +19,8 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-// Перенаправлення для storage (без CORS налаштувань)
-Route::get('/storage/{path}', function($path) {
-    // Використовуємо відносний URL замість абсолютного
-    return redirect('/storage/' . $path);
-})->where('path', '.*');
+// Видалено перенаправлення для storage, яке викликало нескінченні перенаправлення
+// Тепер статичні файли обслуговуються безпосередньо через Nginx
 
 // Health check endpoint
 Route::get('/health', function () {
