@@ -15,7 +15,8 @@ return [
     |
     */
 
-    'paths' => ['api/*', 'sanctum/csrf-cookie', 'cart', 'categories', 'products', 'storage/*', '*'],
+    // Вимикаємо CORS в Laravel, оскільки обробляємо його на рівні Nginx
+    'paths' => [],
 
     'allowed_methods' => ['*'],
 

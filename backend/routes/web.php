@@ -19,9 +19,10 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-// Перенаправлення з localhost на 127.0.0.1 для вирішення CORS проблеми
+// Перенаправлення для storage (без CORS налаштувань)
 Route::get('/storage/{path}', function($path) {
-    return redirect('http://127.0.0.1:8090/storage/' . $path);
+    // Використовуємо відносний URL замість абсолютного
+    return redirect('/storage/' . $path);
 })->where('path', '.*');
 
 // Health check endpoint
