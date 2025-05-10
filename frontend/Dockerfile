@@ -1,5 +1,5 @@
 # Етап збірки
-FROM node:16-alpine AS build
+FROM node:18-alpine AS build
 
 # Встановлюємо робочу директорію
 WORKDIR /app
@@ -21,7 +21,7 @@ ENV NITRO_PRESET=node-server
 RUN npm run build
 
 # Етап виробництва
-FROM node:16-alpine
+FROM node:18-alpine
 
 # Встановлюємо робочу директорію
 WORKDIR /app

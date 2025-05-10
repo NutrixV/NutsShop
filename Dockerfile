@@ -40,12 +40,15 @@ RUN mkdir -p /etc/supervisor/logs
 COPY ./docker-entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
+# Set working directory to backend
+WORKDIR /var/www/html/backend
+
+# Ensure bootstrap/cache directory exists and is writable
+RUN mkdir -p bootstrap/cache && chmod -R 775 bootstrap/cache
+
 # Set directory permissions
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html/storage
-
-# Set working directory to backend
-WORKDIR /var/www/html/backend
 
 # Install dependencies
 RUN composer install --no-interaction --no-dev --prefer-dist --optimize-autoloader
