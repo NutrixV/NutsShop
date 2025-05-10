@@ -58,6 +58,18 @@ RUN chown -R www-data:www-data /var/www/html \
 # Install dependencies and run artisan commands as the www-data user
 USER www-data
 RUN composer install --no-interaction --no-dev --prefer-dist --optimize-autoloader
+
+# Create a basic .env file if it doesn't exist
+RUN if [ ! -f .env ]; then \
+    echo "APP_NAME=NutsShop" > .env && \
+    echo "APP_ENV=production" >> .env && \
+    echo "APP_DEBUG=false" >> .env && \
+    echo "APP_URL=https://nutsshop-api.onrender.com" >> .env && \
+    echo "FRONTEND_URL=https://nutsshop-frontend.onrender.com" >> .env && \
+    echo "DB_CONNECTION=pgsql" >> .env && \
+    echo "LOG_CHANNEL=stderr" >> .env; \
+    fi
+
 # Generate app key if needed
 RUN php artisan key:generate --force
 USER root
