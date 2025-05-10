@@ -30,7 +30,7 @@ services:
       - key: DB_USERNAME
         fromDatabase:
           name: nutsshop-db
-          property: username
+          property: user
       - key: DB_PASSWORD
         fromDatabase:
           name: nutsshop-db
@@ -38,15 +38,9 @@ services:
       - key: APP_KEY
         generateValue: true
       - key: APP_URL
-        fromService:
-          type: web
-          name: nutsshop-api
-          property: url
+        value: https://nutsshop-api.onrender.com
       - key: FRONTEND_URL
-        fromService:
-          type: web
-          name: nutsshop-frontend
-          property: url
+        value: https://nutsshop-frontend.onrender.com
 
   # Frontend (Nuxt.js)
   - type: web
@@ -58,11 +52,7 @@ services:
       - key: NODE_ENV
         value: production
       - key: NUXT_PUBLIC_API_URL
-        fromService:
-          type: web
-          name: nutsshop-api
-          property: url
-          append: /api
+        value: https://nutsshop-api.onrender.com/api
       - key: HOST
         value: 0.0.0.0
       - key: PORT
