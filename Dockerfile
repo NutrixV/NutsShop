@@ -55,13 +55,12 @@ RUN mkdir -p bootstrap/cache \
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html/storage
 
-# Install dependencies as the www-data user
+# Install dependencies and run artisan commands as the www-data user
 USER www-data
 RUN composer install --no-interaction --no-dev --prefer-dist --optimize-autoloader
-USER root
-
 # Generate app key if needed
 RUN php artisan key:generate --force
+USER root
 
 # Expose port 8080
 EXPOSE 8080
