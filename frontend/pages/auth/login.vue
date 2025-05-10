@@ -134,6 +134,11 @@ const handleLogin = async () => {
       localStorage.setItem('customer', JSON.stringify(result.data.data.customer));
       localStorage.setItem('isLoggedIn', 'true');
       
+      // Зберігаємо токен авторизації, якщо він є
+      if (result.data.data.token) {
+        localStorage.setItem('auth_token', result.data.data.token);
+      }
+      
       // Генеруємо подію для оновлення хедера
       window.dispatchEvent(new Event('checkAuth'));
       

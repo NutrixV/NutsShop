@@ -124,6 +124,11 @@ class CustomerController extends Controller
 
         // Зберігаємо клієнта в сесії
         $request->session()->put('customer', $customer);
+        
+        // Генеруємо API токен для зовнішньої авторизації
+        $token = Str::random(60);
+        $customer->api_token = $token;
+        $customer->save();
 
         return response()->json([
             'success' => true,
@@ -135,7 +140,8 @@ class CustomerController extends Controller
                     'first_name' => $customer->first_name,
                     'last_name' => $customer->last_name,
                 ],
-                'remember_me' => $request->remember_me ?? false
+                'remember_me' => $request->remember_me ?? false,
+                'token' => $token // Додано токен для авторизації
             ]
         ]);
     }

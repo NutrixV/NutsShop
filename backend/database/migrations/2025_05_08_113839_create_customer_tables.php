@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('password_hash', 255);
             $table->string('first_name', 64)->nullable();
             $table->string('last_name', 64)->nullable();
+            $table->string('api_token', 80)->unique()->nullable()->default(null);
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent();
         });

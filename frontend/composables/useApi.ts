@@ -26,21 +26,50 @@ export function useApi() {
   }
 
   /**
+   * Додавання авторизаційних заголовків
+   */
+  function getAuthHeaders() {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    };
+    
+    // Додаємо CSRF токен, якщо він є
+    const csrfToken = localStorage.getItem('csrf_token');
+    if (csrfToken) {
+      headers['X-CSRF-TOKEN'] = csrfToken;
+    }
+    
+    // Додаємо токен авторизації, якщо він є
+    const authToken = localStorage.getItem('auth_token');
+    if (authToken) {
+      headers['Authorization'] = `Bearer ${authToken}`;
+    }
+    
+    return headers;
+  }
+
+  /**
    * Створення POST запиту з CSRF токеном
    */
   async function post(endpoint: string, body: any) {
     try {
       // Отримуємо CSRF токен
       const csrfToken = await getCsrfToken();
+      if (csrfToken) {
+        localStorage.setItem('csrf_token', csrfToken);
+      }
+      
+      // Формуємо заголовки
+      const headers = getAuthHeaders();
+      if (csrfToken) {
+        headers['X-CSRF-TOKEN'] = csrfToken;
+      }
       
       // Виконуємо запит
       const response = await fetch(`${apiBaseUrl}${endpoint}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'X-CSRF-TOKEN': csrfToken,
-        },
+        headers,
         credentials: 'include',
         body: JSON.stringify(body)
       });
@@ -63,11 +92,12 @@ export function useApi() {
    */
   async function get(endpoint: string) {
     try {
+      // Формуємо заголовки
+      const headers = getAuthHeaders();
+      
       const response = await fetch(`${apiBaseUrl}${endpoint}`, {
         method: 'GET',
-        headers: {
-          'Accept': 'application/json'
-        },
+        headers,
         credentials: 'include'
       });
 

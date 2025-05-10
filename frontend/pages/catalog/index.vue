@@ -575,13 +575,17 @@ const filteredProducts = computed(() => {
 const mapProductForComponent = (product: ApiProduct): ProductForComponent => {
   // Тут можуть бути додаткові перетворення даних, розрахунки знижок і т.д.
   const { apiBaseUrl } = useConfig();
+  
+  // Видаляємо '/api' з URL для правильного доступу до зображень
+  const baseUrl = apiBaseUrl.replace('/api', '');
+  
   return {
     id: product.entity_id,
     name: product.name,
     slug: product.sku.toLowerCase().replace(/\s+/g, '-'),
     description: product.short_description || product.description,
     price: Number(product.price),
-    image: product.image && `${apiBaseUrl}/storage/${product.image}`,
+    image: product.image && `${baseUrl}/storage/${product.image}`,
     // Додаткові поля можуть бути додані при необхідності
   };
 };

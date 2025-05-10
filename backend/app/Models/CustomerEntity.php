@@ -34,6 +34,7 @@ class CustomerEntity extends Model
         'password_hash',
         'first_name',
         'last_name',
+        'api_token',
     ];
 
     /**
@@ -43,6 +44,7 @@ class CustomerEntity extends Model
      */
     protected $hidden = [
         'password_hash',
+        'api_token',
     ];
 
     /**

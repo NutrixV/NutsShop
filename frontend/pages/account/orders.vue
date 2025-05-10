@@ -262,11 +262,13 @@ const loadUserOrders = async () => {
         for (const item of order.items) {
           // Отримуємо інформацію про продукт за ID
           try {
-            const productResponse = await get(`/api/products/${item.product_id}`);
+            const productResponse = await get(`/products/${item.product_id}`);
             if (productResponse.success && productResponse.data) {
               // Оновлюємо зображення, якщо є
               if (productResponse.data.image) {
-                item.image = `${apiBaseUrl}/storage/${productResponse.data.image}`;
+                // Видаляємо '/api' з URL для правильного доступу до зображень
+                const baseUrl = apiBaseUrl.replace('/api', '');
+                item.image = `${baseUrl}/storage/${productResponse.data.image}`;
               }
             }
           } catch (error) {

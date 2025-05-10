@@ -61,7 +61,7 @@ Route::post('/orders', [OrderController::class, 'store']);
 Route::get('/health', [\App\Http\Controllers\HealthController::class, 'check']);
 
 // Protected routes
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware('customer.auth')->group(function () {
     // Customer profile
     Route::get('/customers/me', [CustomerController::class, 'profile']);
     Route::put('/customers/me', [CustomerController::class, 'update']);
