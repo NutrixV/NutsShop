@@ -118,7 +118,7 @@ const handleLogin = async () => {
     const { post } = useApi();
     
     // Запит до API для логіну
-    const result = await post('/api/customers/login', {
+    const result = await post('/customers/login', {
       email: email.value,
       password: password.value,
       remember_me: rememberMe.value

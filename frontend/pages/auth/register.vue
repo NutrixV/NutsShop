@@ -198,7 +198,7 @@ const handleRegister = async () => {
       const { post } = useApi();
       
       // Реєстрація через API
-      const result = await post('/api/customers/register', {
+      const result = await post('/customers/register', {
         first_name: firstName.value,
         last_name: lastName.value,
         email: email.value,
