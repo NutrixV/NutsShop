@@ -43,15 +43,22 @@ RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 # Set working directory to backend
 WORKDIR /var/www/html/backend
 
-# Ensure bootstrap/cache directory exists and is writable
-RUN mkdir -p bootstrap/cache && chmod -R 775 bootstrap/cache
+# Create all necessary Laravel cache directories and set permissions
+RUN mkdir -p bootstrap/cache \
+    && mkdir -p storage/framework/cache \
+    && mkdir -p storage/framework/sessions \
+    && mkdir -p storage/framework/views \
+    && chmod -R 775 bootstrap/cache \
+    && chmod -R 775 storage/framework
 
 # Set directory permissions
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html/storage
 
-# Install dependencies
+# Install dependencies as the www-data user
+USER www-data
 RUN composer install --no-interaction --no-dev --prefer-dist --optimize-autoloader
+USER root
 
 # Generate app key if needed
 RUN php artisan key:generate --force
