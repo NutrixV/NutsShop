@@ -43,6 +43,10 @@ services:
         value: "base64:wUWpDUjMCeVt47X24ylKV57JRNkKCR52kwogyoqTxFQ="
       - key: PORT
         value: 8080
+      - key: RUN_TESTS
+        value: true
+      - key: ABORT_ON_TEST_FAILURE
+        value: true
 
   # Frontend (Nuxt.js)
   - type: web

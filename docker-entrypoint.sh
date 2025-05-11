@@ -69,6 +69,42 @@ DB_DATABASE=${DB_DATABASE:-postgres}
 DB_USERNAME=${DB_USERNAME:-postgres}
 DB_PASSWORD=${DB_PASSWORD:-postgres}
 
+# Run tests if enabled by environment variable
+if [ "${RUN_TESTS:-false}" = "true" ]; then
+    echo "Running tests before deployment..."
+    
+    # Ensure dev dependencies are installed
+    echo "Installing dev dependencies for testing..."
+    su -s /bin/bash -c "composer install --no-interaction" www-data || true
+    
+    # Create test database
+    echo "Creating SQLite test database..."
+    touch database/database.sqlite
+    chown www-data:www-data database/database.sqlite
+    
+    # Run tests
+    echo "Executing tests..."
+    TEST_RESULT=0
+    su -s /bin/bash -c "DB_CONNECTION=sqlite DB_DATABASE=database/database.sqlite php artisan test" www-data || TEST_RESULT=$?
+    
+    if [ $TEST_RESULT -ne 0 ]; then
+        echo "Tests failed. Deployment aborted."
+        if [ "${ABORT_ON_TEST_FAILURE:-true}" = "true" ]; then
+            exit $TEST_RESULT
+        else 
+            echo "Continuing deployment despite test failures..."
+        fi
+    else
+        echo "All tests passed successfully."
+    fi
+    
+    # Remove dev dependencies to keep the production image slim
+    if [ "${KEEP_DEV_DEPS:-false}" = "false" ]; then
+        echo "Removing dev dependencies..."
+        su -s /bin/bash -c "composer install --no-interaction --no-dev --optimize-autoloader" www-data || true
+    fi
+fi
+
 # Check if tables already exist using psql (faster and more reliable than using Laravel)
 echo "Checking for existing database tables..."
 JOBS_TABLE_EXISTS=$(PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USERNAME" -d "$DB_DATABASE" -t -c "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'jobs')" 2>/dev/null || echo "false")
