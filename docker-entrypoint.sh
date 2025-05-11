@@ -82,10 +82,29 @@ if [ "${RUN_TESTS:-false}" = "true" ]; then
     touch database/database.sqlite
     chown www-data:www-data database/database.sqlite
     
+    # Підготовка тестового середовища - виконання міграцій для тестів
+    echo "Running migrations for test database..."
+    su -s /bin/bash -c "DB_CONNECTION=sqlite DB_DATABASE=database/database.sqlite php artisan migrate --force" www-data
+    
+    # Створюємо директорію для логів тестів, якщо потрібно
+    if [ "${TEST_LOG:-false}" = "true" ]; then
+        mkdir -p tests
+        touch tests/log
+        chown -R www-data:www-data tests
+        chmod 755 tests/log
+    fi
+    
     # Run tests
     echo "Executing tests..."
     TEST_RESULT=0
-    su -s /bin/bash -c "DB_CONNECTION=sqlite DB_DATABASE=database/database.sqlite php artisan test" www-data || TEST_RESULT=$?
+    
+    if [ "${TEST_LOG:-false}" = "true" ]; then
+        # Запускаємо тести з виводом у файл логів
+        su -s /bin/bash -c "DB_CONNECTION=sqlite DB_DATABASE=database/database.sqlite php artisan test | tee tests/log" www-data || TEST_RESULT=$?
+    else
+        # Запускаємо тести без збереження логів
+        su -s /bin/bash -c "DB_CONNECTION=sqlite DB_DATABASE=database/database.sqlite php artisan test" www-data || TEST_RESULT=$?
+    fi
     
     if [ $TEST_RESULT -ne 0 ]; then
         echo "Tests failed. Deployment aborted."

@@ -47,6 +47,8 @@ services:
         value: true
       - key: ABORT_ON_TEST_FAILURE
         value: true
+      - key: TEST_LOG
+        value: true
 
   # Frontend (Nuxt.js)
   - type: web
