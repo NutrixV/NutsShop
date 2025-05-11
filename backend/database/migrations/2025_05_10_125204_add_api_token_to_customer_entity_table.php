@@ -11,9 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('customer_entity', function (Blueprint $table) {
-            $table->string('api_token', 80)->unique()->nullable()->default(null)->after('last_name');
-        });
+        // Перевіряємо, чи існує вже колонка api_token
+        if (!Schema::hasColumn('customer_entity', 'api_token')) {
+            Schema::table('customer_entity', function (Blueprint $table) {
+                $table->string('api_token', 80)->unique()->nullable()->default(null)->after('last_name');
+            });
+        }
     }
 
     /**
@@ -21,8 +24,11 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('customer_entity', function (Blueprint $table) {
-            $table->dropColumn('api_token');
-        });
+        // Перевіряємо, чи існує колонка перед видаленням
+        if (Schema::hasColumn('customer_entity', 'api_token')) {
+            Schema::table('customer_entity', function (Blueprint $table) {
+                $table->dropColumn('api_token');
+            });
+        }
     }
-};
+}; 

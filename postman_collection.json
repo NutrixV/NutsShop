@@ -1,0 +1,774 @@
+{
+	"info": {
+		"_postman_id": "e24e92f8-5c1a-4b7c-9c35-b6e8e2c62d32",
+		"name": "NutsShop API",
+		"description": "A collection of API tests for the NutsShop e-commerce platform.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8090/api",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Register",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"password123\",\n    \"first_name\": \"John\",\n    \"last_name\": \"Doe\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/customer/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"customer",
+								"register"
+							]
+						},
+						"description": "Registers a new customer account"
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.token) {",
+									"    pm.environment.set(\"auth_token\", jsonData.token);",
+									"    console.log(\"Token saved to environment\");",
+									"} else {",
+									"    console.log(\"No token found in response\");",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/customer/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"customer",
+								"login"
+							]
+						},
+						"description": "Logs in a customer with email and password, returns an API token"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Profile",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/customer/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"customer",
+								"profile"
+							]
+						},
+						"description": "Retrieves the customer's profile"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Profile",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"first_name\": \"Updated First Name\",\n    \"last_name\": \"Updated Last Name\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/customer/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"customer",
+								"profile"
+							]
+						},
+						"description": "Updates the customer's profile"
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/customer/logout",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"customer",
+								"logout"
+							]
+						},
+						"description": "Logs out the customer by invalidating the API token"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Catalog",
+			"item": [
+				{
+					"name": "Get Categories",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/catalog/categories",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"catalog",
+								"categories"
+							]
+						},
+						"description": "Retrieves all product categories"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Category",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/catalog/categories/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"catalog",
+								"categories",
+								"1"
+							]
+						},
+						"description": "Retrieves a specific category by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Products",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/catalog/products?page=1&limit=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"catalog",
+								"products"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "category_id",
+									"value": "1",
+									"disabled": true
+								},
+								{
+									"key": "sort",
+									"value": "price",
+									"disabled": true
+								},
+								{
+									"key": "filter",
+									"value": "organic=1",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Retrieves products with filtering, pagination, and sorting"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Product",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/catalog/products/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"catalog",
+								"products",
+								"1"
+							]
+						},
+						"description": "Retrieves a specific product by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Search Products",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/catalog/search?query=almond&page=1&limit=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"catalog",
+								"search"
+							],
+							"query": [
+								{
+									"key": "query",
+									"value": "almond"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "category_id",
+									"value": "1",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Searches for products by keyword"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Cart",
+			"item": [
+				{
+					"name": "Get Cart",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/cart",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"cart"
+							]
+						},
+						"description": "Retrieves the current shopping cart"
+					},
+					"response": []
+				},
+				{
+					"name": "Add Item to Cart",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"product_id\": 1,\n    \"qty\": 2\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/cart/items",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"cart",
+								"items"
+							]
+						},
+						"description": "Adds a product to the shopping cart"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Cart Item",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"qty\": 3\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/cart/items/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"cart",
+								"items",
+								"1"
+							]
+						},
+						"description": "Updates the quantity of an item in the cart"
+					},
+					"response": []
+				},
+				{
+					"name": "Remove Cart Item",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/cart/items/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"cart",
+								"items",
+								"1"
+							]
+						},
+						"description": "Removes an item from the cart"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Orders",
+			"item": [
+				{
+					"name": "Get Orders",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/orders?page=1&limit=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"orders"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Retrieves the customer's orders"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Order",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/orders/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"orders",
+								"1"
+							]
+						},
+						"description": "Retrieves a specific order by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Order",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"shipping_address\": \"123 Main St, City, Country\",\n    \"payment_method\": \"credit_card\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/orders",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"orders"
+							]
+						},
+						"description": "Creates a new order from the current cart"
+					},
+					"response": []
+				},
+				{
+					"name": "Cancel Order",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/orders/1/cancel",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"orders",
+								"1",
+								"cancel"
+							]
+						},
+						"description": "Cancels an existing order"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Admin",
+			"item": [
+				{
+					"name": "Get All Products",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/admin/products?page=1&limit=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"products"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Admin: Retrieves all products"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Product",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"sku\": \"ALM001\",\n    \"name\": \"Premium Almonds\",\n    \"description\": \"Delicious almonds from California\",\n    \"price\": 12.99,\n    \"category_id\": 1,\n    \"qty\": 100,\n    \"is_in_stock\": true,\n    \"nut_type\": \"almond\",\n    \"origin_country\": \"USA\",\n    \"organic\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/products",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"products"
+							]
+						},
+						"description": "Admin: Creates a new product"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Product",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Updated Almonds Name\",\n    \"price\": 14.99,\n    \"qty\": 50\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/products/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"products",
+								"1"
+							]
+						},
+						"description": "Admin: Updates a product"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Product",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/admin/products/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"products",
+								"1"
+							]
+						},
+						"description": "Admin: Deletes a product"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Customers",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/admin/customers?page=1&limit=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"customers"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Admin: Retrieves all customers"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Orders",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/admin/orders?page=1&limit=10&status=pending",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"orders"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "status",
+									"value": "pending"
+								}
+							]
+						},
+						"description": "Admin: Retrieves all orders with optional status filter"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Order Status",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"shipped\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/orders/1/status",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"orders",
+								"1",
+								"status"
+							]
+						},
+						"description": "Admin: Updates the status of an order"
+					},
+					"response": []
+				}
+			]
+		}
+	]
+} 
